@@ -22,6 +22,18 @@ These screenshots were captured from the current v1.4.1 build running on an Andr
 | --- | --- |
 | <img src="docs/screenshots/main-en.png" width="300" alt="Display Fault Simulator English interface"> | <img src="docs/screenshots/main-zh-TW.png" width="300" alt="螢幕故障模擬器繁體中文介面"> |
 
+### Preset effects
+
+These are real full-screen captures from the Android 16 emulator, not composited illustrations.
+
+| Multiple pink lines | Impact-cracked panel | Screen liquid damage |
+| --- | --- | --- |
+| <img src="docs/screenshots/preset-pink-lines.png" width="220" alt="Multiple pink lines preset"> | <img src="docs/screenshots/preset-impact-crack.png" width="220" alt="Impact-cracked panel preset"> | <img src="docs/screenshots/preset-liquid-damage.png" width="220" alt="Screen liquid damage preset"> |
+
+| Heavy dead pixels | Aged LCD scanlines | Severe damage |
+| --- | --- | --- |
+| <img src="docs/screenshots/preset-dead-pixels.png" width="220" alt="Heavy dead pixels preset"> | <img src="docs/screenshots/preset-old-lcd.png" width="220" alt="Aged LCD scanlines preset"> | <img src="docs/screenshots/preset-severe-damage.png" width="220" alt="Severe composite damage preset"> |
+
 ## Highlights
 
 - Up to 12 independent vertical lines per scene

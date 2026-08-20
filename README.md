@@ -22,6 +22,18 @@ Display Fault Simulator 是 Android 螢幕面板故障效果模擬工具，透�
 | --- | --- |
 | <img src="docs/screenshots/main-en.png" width="300" alt="Display Fault Simulator 英文介面"> | <img src="docs/screenshots/main-zh-TW.png" width="300" alt="螢幕故障模擬器繁體中文介面"> |
 
+### 預設場景效果
+
+以下圖片同樣是 Android 16 模擬器的實際全螢幕執行畫面，不是合成示意圖。
+
+| 多條粉紅線 | 面板摔傷破裂 | 螢幕漏液 |
+| --- | --- | --- |
+| <img src="docs/screenshots/preset-pink-lines.png" width="220" alt="多條粉紅線預設效果"> | <img src="docs/screenshots/preset-impact-crack.png" width="220" alt="面板摔傷破裂預設效果"> | <img src="docs/screenshots/preset-liquid-damage.png" width="220" alt="螢幕漏液預設效果"> |
+
+| 大量壞點 | 老舊 LCD 掃描線 | 嚴重故障 |
+| --- | --- | --- |
+| <img src="docs/screenshots/preset-dead-pixels.png" width="220" alt="大量壞點預設效果"> | <img src="docs/screenshots/preset-old-lcd.png" width="220" alt="老舊 LCD 掃描線預設效果"> | <img src="docs/screenshots/preset-severe-damage.png" width="220" alt="嚴重故障複合預設效果"> |
+
 ## 主要功能
 
 - 每個場景最多 12 條獨立垂直線
