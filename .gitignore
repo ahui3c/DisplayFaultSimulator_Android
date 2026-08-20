@@ -1,0 +1,17 @@
+*.iml
+.gradle/
+.gradle-codex/
+.gradle-user-codex/
+.kotlin/
+.idea/
+local.properties
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+app/build/
+outputs/
+.android-avd/
+*.jks
+*.keystore
+keystore.properties

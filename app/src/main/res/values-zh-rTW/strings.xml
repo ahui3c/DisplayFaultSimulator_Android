@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">螢幕故障模擬器</string>
+    <string name="app_tagline">多線條・故障場景・觸控完全穿透</string>
+    <string name="width_value">%1$d dp</string>
+    <string name="movement_value">±%1$d dp</string>
+    <string name="percent_value">%1$d%%</string>
+    <string name="position_decimal_value">水平位置：%1$.1f%%</string>
+    <string name="selected_line_value">目前選取：線條 %1$d／%2$d</string>
+    <plurals name="seconds_value">
+        <item quantity="other">%1$d 秒</item>
+    </plurals>
+    <plurals name="minutes_value">
+        <item quantity="other">%1$d 分鐘</item>
+    </plurals>
+    <string name="time_parts">%1$s %2$s</string>
+
+    <string name="section_safety">安全設計</string>
+    <string name="safety_description">所有故障效果都只是透明上層畫面，不會修改螢幕、截取內容或攔截任何點按與滑動。通知列永遠提供停止按鈕。</string>
+    <string name="section_required_settings">必要設定</string>
+    <string name="grant_overlay_permission">授予顯示在其他應用程式上層權限</string>
+    <string name="open_battery_optimization">開啟電池最佳化清單</string>
+    <string name="restore_after_boot">手機開機後自動恢復尚未結束的效果</string>
+    <string name="section_damage_scenes">故障場景</string>
+    <string name="open_drag_editor">開啟拖曳編輯器</string>
+    <string name="action_new">新增</string>
+    <string name="action_duplicate">複製</string>
+    <string name="action_delete">刪除</string>
+    <string name="scene_editor_description">編輯器可直接左右拖曳每條線，並設定透明度、光暈、閃爍、壞點、漏液、殘影、破裂與掃描線。</string>
+    <string name="section_preset_library">場景預設庫</string>
+    <string name="preset_library_description">選擇內建效果後會建立一份可自由修改的場景，不會覆蓋原本設定。</string>
+    <string name="apply_preset">套用預設</string>
+    <string name="section_schedule">倒數與自動停止</string>
+    <string name="start_time">開始時間</string>
+    <string name="stop_time">停止時間</string>
+    <string name="section_quick_tile">快速設定磁貼</string>
+    <string name="quick_tile_description">從通知欄完整下拉，點選編輯或鉛筆圖示，將「螢幕故障」加入快速設定。之後不必開啟 App 就能開始或停止目前場景。</string>
+    <string name="section_display_control">顯示控制</string>
+    <string name="start_or_schedule">開始／排程顯示</string>
+    <string name="stop_all_effects">立即停止所有效果</string>
+    <string name="force_stop_note">提醒：使用者手動「強制停止」App 後，Android 會禁止 App 自行恢復；部分廠牌也可能需要另行允許自動啟動。</string>
+
+    <string name="time_immediately">立即顯示</string>
+    <string name="time_after_5_seconds">5 秒後</string>
+    <string name="time_after_10_seconds">10 秒後</string>
+    <string name="time_after_30_seconds">30 秒後</string>
+    <string name="time_after_1_minute">1 分鐘後</string>
+    <string name="time_after_5_minutes">5 分鐘後</string>
+    <string name="duration_manual">持續顯示，直到手動停止</string>
+    <string name="duration_1_minute">顯示 1 分鐘</string>
+    <string name="duration_5_minutes">顯示 5 分鐘</string>
+    <string name="duration_15_minutes">顯示 15 分鐘</string>
+    <string name="duration_30_minutes">顯示 30 分鐘</string>
+    <string name="duration_1_hour">顯示 1 小時</string>
+
+    <string name="status_overlay_granted">● 上層顯示權限已授予</string>
+    <string name="status_overlay_missing">○ 尚未授予上層顯示權限</string>
+    <string name="status_battery_unrestricted">● 已不受電池最佳化限制</string>
+    <string name="status_battery_suggestion">○ 建議在清單中將本 App 設為不受限制</string>
+    <string name="status_effect_stopped">○ 故障效果目前已停止</string>
+    <string name="status_effect_scheduled">● 已排程，等待倒數開始</string>
+    <string name="status_effect_auto_stop">● 故障效果顯示中，已設定自動停止</string>
+    <string name="status_effect_active">● 故障效果顯示中</string>
+    <string name="toast_keep_one_scene">至少必須保留一個場景</string>
+    <string name="toast_preset_applied">已套用「%1$s」</string>
+    <string name="toast_overlay_required">請先授予上層顯示權限</string>
+
+    <string name="editor_title">場景編輯器</string>
+    <string name="action_done">完成</string>
+    <string name="scene_name">場景名稱</string>
+    <string name="drag_preview_title">直接拖曳預覽中的線條</string>
+    <string name="drag_preview_description">先點選線條，再左右拖曳；白框代表目前選取的線條。</string>
+    <string name="drag_preview_accessibility">可拖曳的故障場景預覽</string>
+    <string name="add_line">＋ 新增線條</string>
+    <string name="delete_selected">刪除選取</string>
+    <string name="section_selected_line">選取線條的外觀</string>
+    <string name="field_color">顏色</string>
+    <string name="field_width">粗細</string>
+    <string name="field_opacity">透明度</string>
+    <string name="field_glow">光暈範圍</string>
+    <string name="field_flicker">不穩定閃爍</string>
+    <string name="field_flicker_strength">閃爍強度</string>
+    <string name="section_position_protection">位置微移保護</string>
+    <string name="field_timed_movement">定時左右微幅移動</string>
+    <string name="field_max_offset">最大偏移</string>
+    <string name="field_movement_interval">移動間隔</string>
+    <string name="section_composite_damage">複合螢幕故障</string>
+    <string name="effect_cracked_screen">蜘蛛網狀螢幕破裂</string>
+    <string name="effect_dead_pixels">壞點與亮點</string>
+    <string name="effect_liquid_damage">面板漏液與色塊</string>
+    <string name="effect_ghosting">OLED 殘影</string>
+    <string name="effect_scanlines">水平掃描線</string>
+    <string name="effect_strength_description">每個滑桿代表效果強度。所有效果可同時疊加並儲存在場景中。</string>
+    <string name="save_and_apply_scene">儲存場景並套用</string>
+    <string name="toast_max_lines">單一場景最多 12 條線</string>
+    <string name="toast_min_lines">場景至少需要一條線</string>
+
+    <string name="color_bright_green">亮綠色</string>
+    <string name="color_bright_purple">亮紫色</string>
+    <string name="color_bright_red">亮紅色</string>
+    <string name="color_bright_blue">亮藍色</string>
+    <string name="color_bright_yellow">亮黃色</string>
+    <string name="color_cyan">青色</string>
+    <string name="color_white">白色</string>
+    <string name="color_black">黑色</string>
+
+    <string name="new_scene">新故障場景</string>
+    <string name="copy_scene_name">%1$s 副本</string>
+    <string name="unnamed_scene">未命名場景</string>
+    <string name="preset_classic_oled">經典 OLED 綠線</string>
+    <string name="preset_pink_lines">多條粉紅線</string>
+    <string name="preset_impact_crack">面板摔傷破裂</string>
+    <string name="preset_liquid">螢幕漏液</string>
+    <string name="preset_dead_pixels">大量壞點</string>
+    <string name="preset_cable_contact">排線接觸不良</string>
+    <string name="preset_old_lcd">老舊 LCD 掃描線</string>
+    <string name="preset_light_damage">輕微故障</string>
+    <string name="preset_severe_damage">嚴重故障</string>
+
+    <string name="notification_effect_active">故障效果顯示中；不會攔截任何觸控操作</string>
+    <string name="notification_preparing">正在準備故障效果</string>
+    <plurals name="notification_starts_in">
+        <item quantity="other">將於 %1$d 秒後顯示故障效果</item>
+    </plurals>
+    <string name="notification_title">螢幕故障模擬器</string>
+    <string name="notification_stop">停止顯示</string>
+    <string name="notification_channel_name">故障效果常駐服務</string>
+    <string name="notification_channel_description">讓螢幕故障效果持續顯示，並提供快速停止按鈕</string>
+    <string name="tile_name">螢幕故障</string>
+    <string name="tile_active">顯示中</string>
+    <string name="tile_stopped">已停止</string>
+    <string name="tile_permission_required">請先開啟螢幕故障模擬器並授予上層顯示權限</string>
+</resources>

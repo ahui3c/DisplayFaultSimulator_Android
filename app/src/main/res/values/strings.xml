@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Display Fault Simulator</string>
+    <string name="app_tagline">Multiple lines · Damage scenes · Full touch-through</string>
+    <string name="width_value">%1$d dp</string>
+    <string name="movement_value">±%1$d dp</string>
+    <string name="percent_value">%1$d%%</string>
+    <string name="position_decimal_value">Horizontal position: %1$.1f%%</string>
+    <string name="selected_line_value">Selected: line %1$d of %2$d</string>
+    <plurals name="seconds_value">
+        <item quantity="one">%1$d second</item>
+        <item quantity="other">%1$d seconds</item>
+    </plurals>
+    <plurals name="minutes_value">
+        <item quantity="one">%1$d minute</item>
+        <item quantity="other">%1$d minutes</item>
+    </plurals>
+    <string name="time_parts">%1$s %2$s</string>
+
+    <string name="section_safety">Safe by design</string>
+    <string name="safety_description">All damage effects are drawn in a transparent overlay. The app does not modify the display, capture screen content, or intercept taps and swipes. A stop action is always available in the notification.</string>
+    <string name="section_required_settings">Required settings</string>
+    <string name="grant_overlay_permission">Allow display over other apps</string>
+    <string name="open_battery_optimization">Open battery optimization list</string>
+    <string name="restore_after_boot">Restore unfinished effects after the phone starts</string>
+    <string name="section_damage_scenes">Damage scenes</string>
+    <string name="open_drag_editor">Open drag editor</string>
+    <string name="action_new">New</string>
+    <string name="action_duplicate">Duplicate</string>
+    <string name="action_delete">Delete</string>
+    <string name="scene_editor_description">Drag each line horizontally and adjust opacity, glow, flicker, dead pixels, liquid damage, ghosting, cracks, and scanlines.</string>
+    <string name="section_preset_library">Scene preset library</string>
+    <string name="preset_library_description">Applying a built-in effect creates an editable scene without replacing your existing scenes.</string>
+    <string name="apply_preset">Apply preset</string>
+    <string name="section_schedule">Countdown and automatic stop</string>
+    <string name="start_time">Start time</string>
+    <string name="stop_time">Stop time</string>
+    <string name="section_quick_tile">Quick Settings tile</string>
+    <string name="quick_tile_description">Fully expand Quick Settings, tap Edit or the pencil icon, then add “Display Fault”. You can then start or stop the current scene without opening the app.</string>
+    <string name="section_display_control">Display control</string>
+    <string name="start_or_schedule">Start or schedule display</string>
+    <string name="stop_all_effects">Stop all effects now</string>
+    <string name="force_stop_note">Note: Android prevents automatic recovery after you manually force-stop the app. Some manufacturers may also require a separate auto-start permission.</string>
+
+    <string name="time_immediately">Immediately</string>
+    <string name="time_after_5_seconds">After 5 seconds</string>
+    <string name="time_after_10_seconds">After 10 seconds</string>
+    <string name="time_after_30_seconds">After 30 seconds</string>
+    <string name="time_after_1_minute">After 1 minute</string>
+    <string name="time_after_5_minutes">After 5 minutes</string>
+    <string name="duration_manual">Continue until manually stopped</string>
+    <string name="duration_1_minute">Display for 1 minute</string>
+    <string name="duration_5_minutes">Display for 5 minutes</string>
+    <string name="duration_15_minutes">Display for 15 minutes</string>
+    <string name="duration_30_minutes">Display for 30 minutes</string>
+    <string name="duration_1_hour">Display for 1 hour</string>
+
+    <string name="status_overlay_granted">● Overlay permission granted</string>
+    <string name="status_overlay_missing">○ Overlay permission not granted</string>
+    <string name="status_battery_unrestricted">● Battery optimization is unrestricted</string>
+    <string name="status_battery_suggestion">○ Set this app to Unrestricted in the list</string>
+    <string name="status_effect_stopped">○ Damage effects are stopped</string>
+    <string name="status_effect_scheduled">● Scheduled and waiting for countdown</string>
+    <string name="status_effect_auto_stop">● Damage effects are active with automatic stop</string>
+    <string name="status_effect_active">● Damage effects are active</string>
+    <string name="toast_keep_one_scene">At least one scene must remain</string>
+    <string name="toast_preset_applied">Applied “%1$s”</string>
+    <string name="toast_overlay_required">Grant the overlay permission first</string>
+
+    <string name="editor_title">Scene editor</string>
+    <string name="action_done">Done</string>
+    <string name="scene_name">Scene name</string>
+    <string name="drag_preview_title">Drag lines directly in the preview</string>
+    <string name="drag_preview_description">Tap a line, then drag it left or right. The white outline marks the selected line.</string>
+    <string name="drag_preview_accessibility">Draggable damage scene preview</string>
+    <string name="add_line">＋ Add line</string>
+    <string name="delete_selected">Delete selected</string>
+    <string name="section_selected_line">Selected line appearance</string>
+    <string name="field_color">Color</string>
+    <string name="field_width">Width</string>
+    <string name="field_opacity">Opacity</string>
+    <string name="field_glow">Glow range</string>
+    <string name="field_flicker">Unstable flicker</string>
+    <string name="field_flicker_strength">Flicker strength</string>
+    <string name="section_position_protection">Position shift protection</string>
+    <string name="field_timed_movement">Periodically shift left and right</string>
+    <string name="field_max_offset">Maximum offset</string>
+    <string name="field_movement_interval">Movement interval</string>
+    <string name="section_composite_damage">Composite display damage</string>
+    <string name="effect_cracked_screen">Spiderweb screen cracks</string>
+    <string name="effect_dead_pixels">Dead and stuck pixels</string>
+    <string name="effect_liquid_damage">Panel liquid damage and blotches</string>
+    <string name="effect_ghosting">OLED image retention</string>
+    <string name="effect_scanlines">Horizontal scanlines</string>
+    <string name="effect_strength_description">Each slider controls effect strength. All effects can be layered and saved in the scene.</string>
+    <string name="save_and_apply_scene">Save and apply scene</string>
+    <string name="toast_max_lines">A scene can contain up to 12 lines</string>
+    <string name="toast_min_lines">A scene must contain at least one line</string>
+
+    <string name="color_bright_green">Bright green</string>
+    <string name="color_bright_purple">Bright purple</string>
+    <string name="color_bright_red">Bright red</string>
+    <string name="color_bright_blue">Bright blue</string>
+    <string name="color_bright_yellow">Bright yellow</string>
+    <string name="color_cyan">Cyan</string>
+    <string name="color_white">White</string>
+    <string name="color_black">Black</string>
+
+    <string name="new_scene">New damage scene</string>
+    <string name="copy_scene_name">%1$s Copy</string>
+    <string name="unnamed_scene">Unnamed scene</string>
+    <string name="preset_classic_oled">Classic OLED green line</string>
+    <string name="preset_pink_lines">Multiple pink lines</string>
+    <string name="preset_impact_crack">Impact-cracked panel</string>
+    <string name="preset_liquid">Screen liquid damage</string>
+    <string name="preset_dead_pixels">Heavy dead pixels</string>
+    <string name="preset_cable_contact">Loose display cable</string>
+    <string name="preset_old_lcd">Aged LCD scanlines</string>
+    <string name="preset_light_damage">Light damage</string>
+    <string name="preset_severe_damage">Severe damage</string>
+
+    <string name="notification_effect_active">Damage effects active; all touches pass through</string>
+    <string name="notification_preparing">Preparing damage effects</string>
+    <plurals name="notification_starts_in">
+        <item quantity="one">Damage effects start in %1$d second</item>
+        <item quantity="other">Damage effects start in %1$d seconds</item>
+    </plurals>
+    <string name="notification_title">Display Fault Simulator</string>
+    <string name="notification_stop">Stop display</string>
+    <string name="notification_channel_name">Persistent damage effects</string>
+    <string name="notification_channel_description">Keeps display damage effects active and provides a quick stop action</string>
+    <string name="tile_name">Display Fault</string>
+    <string name="tile_active">Active</string>
+    <string name="tile_stopped">Stopped</string>
+    <string name="tile_permission_required">Open Display Fault Simulator and grant the overlay permission first</string>
+</resources>
