@@ -138,6 +138,8 @@ class SceneRepository(context: Context) {
         put("effects", JSONObject().apply {
             put("crackedScreen", scene.effects.crackedScreen)
             put("crackStrength", scene.effects.crackStrength)
+            put("crackPattern", scene.effects.crackPattern.name)
+            put("crackOpacityPercent", scene.effects.crackOpacityPercent)
             put("deadPixels", scene.effects.deadPixels)
             put("deadPixelStrength", scene.effects.deadPixelStrength)
             put("liquidDamage", scene.effects.liquidDamage)
@@ -176,6 +178,10 @@ class SceneRepository(context: Context) {
             effects = DamageEffects(
                 crackedScreen = effectsJson.optBoolean("crackedScreen", false),
                 crackStrength = effectsJson.optInt("crackStrength", 55).coerceIn(0, 100),
+                crackPattern = runCatching {
+                    CrackPattern.valueOf(effectsJson.optString("crackPattern", CrackPattern.SPIDERWEB.name))
+                }.getOrDefault(CrackPattern.SPIDERWEB),
+                crackOpacityPercent = effectsJson.optInt("crackOpacityPercent", 42).coerceIn(10, 100),
                 deadPixels = effectsJson.optBoolean("deadPixels", false),
                 deadPixelStrength = effectsJson.optInt("deadPixelStrength", 35).coerceIn(0, 100),
                 liquidDamage = effectsJson.optBoolean("liquidDamage", false),

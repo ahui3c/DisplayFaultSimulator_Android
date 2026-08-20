@@ -13,9 +13,18 @@ data class DamageLine(
     val flickerStrength: Int
 )
 
+enum class CrackPattern {
+    SPIDERWEB,
+    RADIAL_IMPACT,
+    CORNER_SHATTER,
+    HAIRLINE
+}
+
 data class DamageEffects(
     val crackedScreen: Boolean = false,
     val crackStrength: Int = 55,
+    val crackPattern: CrackPattern = CrackPattern.SPIDERWEB,
+    val crackOpacityPercent: Int = 42,
     val deadPixels: Boolean = false,
     val deadPixelStrength: Int = 35,
     val liquidDamage: Boolean = false,

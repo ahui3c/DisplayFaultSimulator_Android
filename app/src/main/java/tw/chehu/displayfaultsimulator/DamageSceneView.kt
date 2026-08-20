@@ -147,23 +147,24 @@ object SceneRenderer {
         val effects = scene.effects
         if (!effects.crackedScreen) return
         val strength = effects.crackStrength.coerceIn(0, 100)
-        drawCrackImpact(
-            canvas,
-            canvas.width * 0.72f,
-            canvas.height * 0.29f,
-            strength,
-            density,
-            scene.id.hashCode()
-        )
-        if (strength >= 62) {
-            drawCrackImpact(
-                canvas,
-                canvas.width * 0.23f,
-                canvas.height * 0.68f,
-                (strength * 0.68f).toInt(),
-                density,
-                scene.id.hashCode() xor 0x5F3759DF
-            )
+        val opacity = effects.crackOpacityPercent.coerceIn(10, 100)
+        val seed = scene.id.hashCode()
+        when (effects.crackPattern) {
+            CrackPattern.SPIDERWEB -> {
+                drawCrackImpact(canvas, canvas.width * 0.72f, canvas.height * 0.29f, strength, opacity, density, seed, 1f, true)
+                if (strength >= 62) {
+                    drawCrackImpact(canvas, canvas.width * 0.23f, canvas.height * 0.68f, (strength * 0.68f).toInt(), opacity, density, seed xor 0x5F3759DF, 0.72f, true)
+                }
+            }
+            CrackPattern.RADIAL_IMPACT ->
+                drawCrackImpact(canvas, canvas.width * 0.54f, canvas.height * 0.43f, strength, opacity, density, seed, 1.28f, false)
+            CrackPattern.CORNER_SHATTER -> {
+                drawCrackImpact(canvas, canvas.width * 0.04f, canvas.height * 0.10f, strength, opacity, density, seed, 0.92f, true)
+                if (strength >= 48) {
+                    drawCrackImpact(canvas, canvas.width * 0.96f, canvas.height * 0.84f, (strength * 0.72f).toInt(), opacity, density, seed xor 0x3C6EF372, 0.68f, false)
+                }
+            }
+            CrackPattern.HAIRLINE -> drawHairlineCracks(canvas, strength, opacity, density, seed)
         }
     }
 
@@ -172,12 +173,15 @@ object SceneRenderer {
         centerX: Float,
         centerY: Float,
         strength: Int,
+        opacityPercent: Int,
         density: Float,
-        seed: Int
+        seed: Int,
+        lengthScale: Float,
+        drawRings: Boolean
     ) {
         val random = Random(seed)
-        val rayCount = 9 + strength / 6
-        val maxLength = max(canvas.width, canvas.height) * (0.22f + strength / 155f)
+        val rayCount = 7 + strength / 8
+        val maxLength = max(canvas.width, canvas.height) * (0.16f + strength / 225f) * lengthScale
         val paths = mutableListOf<Path>()
 
         repeat(rayCount) { ray ->
@@ -185,41 +189,96 @@ object SceneRenderer {
             val length = maxLength * (0.46f + random.nextFloat() * 0.58f)
             val segments = 4 + random.nextInt(4)
             val path = Path().apply { moveTo(centerX, centerY) }
+            var branchX = centerX
+            var branchY = centerY
             for (segment in 1..segments) {
                 val distance = length * segment / segments
-                val sideJitter = (random.nextFloat() - 0.5f) * length * 0.075f
+                val sideJitter = (random.nextFloat() - 0.5f) * length * 0.065f
                 val x = centerX + cos(baseAngle) * distance - sin(baseAngle) * sideJitter
                 val y = centerY + sin(baseAngle) * distance + cos(baseAngle) * sideJitter
                 path.lineTo(x, y)
+                if (segment == segments / 2) {
+                    branchX = x
+                    branchY = y
+                }
             }
             paths += path
+            if (strength >= 38 && ray % 2 == 0) {
+                val branchAngle = baseAngle + (if (random.nextBoolean()) 1f else -1f) * (0.42f + random.nextFloat() * 0.5f)
+                val branchLength = length * (0.13f + random.nextFloat() * 0.18f)
+                paths += Path().apply {
+                    moveTo(branchX, branchY)
+                    lineTo(
+                        branchX + cos(branchAngle) * branchLength,
+                        branchY + sin(branchAngle) * branchLength
+                    )
+                }
+            }
         }
 
+        val opacityScale = opacityPercent / 100f
         paint.shader = null
         paint.style = Paint.Style.STROKE
         paint.strokeCap = Paint.Cap.ROUND
         paint.strokeJoin = Paint.Join.ROUND
-        paint.color = Color.argb((95 + strength).coerceAtMost(190), 0, 0, 0)
-        paint.strokeWidth = density * (1.7f + strength / 65f)
+        paint.color = Color.argb(((54 + strength * 0.48f) * opacityScale).toInt().coerceIn(8, 128), 8, 10, 12)
+        paint.strokeWidth = density * (0.62f + strength / 190f)
         paths.forEach { canvas.drawPath(it, paint) }
 
-        paint.color = Color.argb((105 + strength).coerceAtMost(205), 235, 245, 250)
-        paint.strokeWidth = density * 0.72f
+        paint.color = Color.argb(((82 + strength * 0.62f) * opacityScale).toInt().coerceIn(10, 152), 238, 246, 248)
+        paint.strokeWidth = density * (0.26f + strength / 520f)
         paths.forEach { canvas.drawPath(it, paint) }
 
-        repeat(4 + strength / 28) { ring ->
-            val radius = density * (13f + ring * 16f + random.nextFloat() * 7f)
-            rect.set(centerX - radius, centerY - radius, centerX + radius, centerY + radius)
-            paint.color = Color.argb((75 + strength / 2).coerceAtMost(145), 225, 238, 244)
-            paint.strokeWidth = density * 0.65f
-            val start = random.nextFloat() * 260f
-            canvas.drawArc(rect, start, 58f + random.nextFloat() * 105f, false, paint)
-            canvas.drawArc(rect, start + 185f, 35f + random.nextFloat() * 75f, false, paint)
+        if (drawRings) {
+            repeat(2 + strength / 32) { ring ->
+                val radius = density * (11f + ring * 17f + random.nextFloat() * 8f)
+                rect.set(centerX - radius, centerY - radius, centerX + radius, centerY + radius)
+                paint.color = Color.argb(((58 + strength * 0.34f) * opacityScale).toInt().coerceIn(7, 110), 225, 238, 244)
+                paint.strokeWidth = density * 0.34f
+                val start = random.nextFloat() * 260f
+                canvas.drawArc(rect, start, 45f + random.nextFloat() * 90f, false, paint)
+                canvas.drawArc(rect, start + 185f, 30f + random.nextFloat() * 65f, false, paint)
+            }
         }
 
         paint.style = Paint.Style.FILL
-        paint.color = Color.argb((110 + strength).coerceAtMost(210), 5, 5, 8)
-        canvas.drawCircle(centerX, centerY, density * (2.5f + strength / 30f), paint)
+        paint.color = Color.argb(((70 + strength * 0.55f) * opacityScale).toInt().coerceIn(8, 135), 5, 5, 8)
+        canvas.drawCircle(centerX, centerY, density * (1.2f + strength / 55f), paint)
+    }
+
+    private fun drawHairlineCracks(canvas: Canvas, strength: Int, opacityPercent: Int, density: Float, seed: Int) {
+        val random = Random(seed)
+        val paths = mutableListOf<Path>()
+        repeat(3 + strength / 24) { index ->
+            var x = canvas.width * (0.08f + random.nextFloat() * 0.84f)
+            var y = if (index % 2 == 0) -density else canvas.height + density
+            val direction = if (index % 2 == 0) 1f else -1f
+            val path = Path().apply { moveTo(x, y) }
+            repeat(8 + strength / 14) { segment ->
+                y += direction * canvas.height / (8f + strength / 14f)
+                x += (random.nextFloat() - 0.5f) * canvas.width * (0.07f + strength / 1800f)
+                path.lineTo(x, y)
+                if (segment > 1 && segment % 4 == 0) {
+                    val branchLength = canvas.width * (0.035f + random.nextFloat() * 0.055f)
+                    paths += Path().apply {
+                        moveTo(x, y)
+                        lineTo(x + (if (random.nextBoolean()) 1 else -1) * branchLength, y + direction * branchLength * 0.7f)
+                    }
+                }
+            }
+            paths += path
+        }
+        val opacityScale = opacityPercent / 100f
+        paint.shader = null
+        paint.style = Paint.Style.STROKE
+        paint.strokeCap = Paint.Cap.ROUND
+        paint.strokeJoin = Paint.Join.ROUND
+        paint.color = Color.argb(((52 + strength * 0.4f) * opacityScale).toInt().coerceIn(7, 105), 5, 7, 8)
+        paint.strokeWidth = density * 0.68f
+        paths.forEach { canvas.drawPath(it, paint) }
+        paint.color = Color.argb(((75 + strength * 0.5f) * opacityScale).toInt().coerceIn(9, 135), 240, 247, 249)
+        paint.strokeWidth = density * 0.28f
+        paths.forEach { canvas.drawPath(it, paint) }
     }
 
     private fun drawLines(

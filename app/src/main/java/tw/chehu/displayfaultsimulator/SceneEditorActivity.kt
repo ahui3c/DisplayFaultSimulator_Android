@@ -43,7 +43,11 @@ class SceneEditorActivity : Activity() {
     private lateinit var movementValue: TextView
     private lateinit var movementIntervalValue: TextView
     private lateinit var crackSwitch: Switch
+    private lateinit var crackPatternSpinner: Spinner
     private lateinit var crackSeek: SeekBar
+    private lateinit var crackStrengthValue: TextView
+    private lateinit var crackOpacitySeek: SeekBar
+    private lateinit var crackOpacityValue: TextView
     private lateinit var deadPixelSwitch: Switch
     private lateinit var deadPixelSeek: SeekBar
     private lateinit var liquidSwitch: Switch
@@ -63,6 +67,13 @@ class SceneEditorActivity : Activity() {
         ColorOption(getString(R.string.color_cyan), Color.rgb(37, 230, 230)),
         ColorOption(getString(R.string.color_white), Color.WHITE),
         ColorOption(getString(R.string.color_black), Color.BLACK)
+    ) }
+
+    private val crackPatterns by lazy { listOf(
+        CrackPatternOption(getString(R.string.crack_pattern_spiderweb), CrackPattern.SPIDERWEB),
+        CrackPatternOption(getString(R.string.crack_pattern_radial), CrackPattern.RADIAL_IMPACT),
+        CrackPatternOption(getString(R.string.crack_pattern_corner), CrackPattern.CORNER_SHATTER),
+        CrackPatternOption(getString(R.string.crack_pattern_hairline), CrackPattern.HAIRLINE)
     ) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -150,7 +161,15 @@ class SceneEditorActivity : Activity() {
         content.addView(card().apply {
             addView(sectionTitle(getString(R.string.section_composite_damage)))
             crackSwitch = effectSwitch(getString(R.string.effect_cracked_screen)); addView(crackSwitch)
+            addView(fieldLabel(getString(R.string.field_crack_pattern)))
+            crackPatternSpinner = Spinner(this@SceneEditorActivity).apply {
+                adapter = ArrayAdapter(this@SceneEditorActivity, android.R.layout.simple_spinner_dropdown_item, crackPatterns.map { it.name })
+            }
+            addView(crackPatternSpinner, matchWrap())
+            crackStrengthValue = valueText(); addView(fieldHeader(getString(R.string.field_crack_strength), crackStrengthValue))
             crackSeek = effectSeek(); addView(crackSeek)
+            crackOpacityValue = valueText(); addView(fieldHeader(getString(R.string.field_crack_opacity), crackOpacityValue))
+            crackOpacitySeek = SeekBar(this@SceneEditorActivity).apply { max = 90 }; addView(crackOpacitySeek, matchWrap())
             deadPixelSwitch = effectSwitch(getString(R.string.effect_dead_pixels)); addView(deadPixelSwitch)
             deadPixelSeek = effectSeek(); addView(deadPixelSeek)
             liquidSwitch = effectSwitch(getString(R.string.effect_liquid_damage)); addView(liquidSwitch)
@@ -193,7 +212,11 @@ class SceneEditorActivity : Activity() {
         movementIntervalSeek.listen { updateScene(workingScene.copy(movementSeconds = 30 + movementIntervalSeek.progress * 30)); updateMovementValues() }
 
         crackSwitch.setOnCheckedChangeListener { _, value -> if (!syncing) updateEffects { it.copy(crackedScreen = value) } }
-        crackSeek.listen { updateEffects { it.copy(crackStrength = crackSeek.progress) } }
+        crackPatternSpinner.onItemSelectedListener = SimpleItemSelectedListener {
+            if (!syncing) updateEffects { it.copy(crackPattern = crackPatterns[crackPatternSpinner.selectedItemPosition].pattern) }
+        }
+        crackSeek.listen { updateEffects { it.copy(crackStrength = crackSeek.progress) }; updateEffectValues() }
+        crackOpacitySeek.listen { updateEffects { it.copy(crackOpacityPercent = crackOpacitySeek.progress + 10) }; updateEffectValues() }
         deadPixelSwitch.setOnCheckedChangeListener { _, value -> if (!syncing) updateEffects { it.copy(deadPixels = value) } }
         deadPixelSeek.listen { updateEffects { it.copy(deadPixelStrength = deadPixelSeek.progress) } }
         liquidSwitch.setOnCheckedChangeListener { _, value -> if (!syncing) updateEffects { it.copy(liquidDamage = value) } }
@@ -211,7 +234,9 @@ class SceneEditorActivity : Activity() {
         movementSeek.progress = workingScene.movementDp - 1
         movementIntervalSeek.progress = ((workingScene.movementSeconds - 30) / 30).coerceIn(0, 19)
         crackSwitch.isChecked = workingScene.effects.crackedScreen
+        crackPatternSpinner.setSelection(crackPatterns.indexOfFirst { it.pattern == workingScene.effects.crackPattern }.coerceAtLeast(0))
         crackSeek.progress = workingScene.effects.crackStrength
+        crackOpacitySeek.progress = workingScene.effects.crackOpacityPercent - 10
         deadPixelSwitch.isChecked = workingScene.effects.deadPixels
         deadPixelSeek.progress = workingScene.effects.deadPixelStrength
         liquidSwitch.isChecked = workingScene.effects.liquidDamage
@@ -224,6 +249,7 @@ class SceneEditorActivity : Activity() {
         syncing = false
         syncSelectedLineControls()
         updateMovementValues()
+        updateEffectValues()
         updateEnabledStates()
     }
 
@@ -312,11 +338,18 @@ class SceneEditorActivity : Activity() {
         }
     }
 
+    private fun updateEffectValues() {
+        crackStrengthValue.text = getString(R.string.percent_value, crackSeek.progress)
+        crackOpacityValue.text = getString(R.string.percent_value, crackOpacitySeek.progress + 10)
+    }
+
     private fun updateEnabledStates() {
         flickerSeek.isEnabled = flickerSwitch.isChecked
         movementSeek.isEnabled = movementSwitch.isChecked
         movementIntervalSeek.isEnabled = movementSwitch.isChecked
         crackSeek.isEnabled = crackSwitch.isChecked
+        crackPatternSpinner.isEnabled = crackSwitch.isChecked
+        crackOpacitySeek.isEnabled = crackSwitch.isChecked
         deadPixelSeek.isEnabled = deadPixelSwitch.isChecked
         liquidSeek.isEnabled = liquidSwitch.isChecked
         ghostSeek.isEnabled = ghostSwitch.isChecked
@@ -365,6 +398,7 @@ class SceneEditorActivity : Activity() {
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
     private fun dp(value: Float) = (value * resources.displayMetrics.density).toInt()
     private data class ColorOption(val name: String, val color: Int)
+    private data class CrackPatternOption(val name: String, val pattern: CrackPattern)
 
     companion object { const val EXTRA_SCENE_ID = "scene_id" }
 }

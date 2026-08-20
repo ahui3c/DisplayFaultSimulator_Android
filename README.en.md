@@ -39,7 +39,8 @@ These are real full-screen captures from the Android 16 emulator, not composited
 - Up to 12 independent vertical lines per scene
 - Per-line color, width, opacity, glow, flicker, position, and timed horizontal movement
 - Direct line dragging in the visual scene editor
-- Layerable cracked glass, dead/stuck pixels, panel liquid damage, OLED ghosting, and LCD scanlines
+- Layerable spiderweb, radial-impact, corner-shatter, and hairline crack patterns, plus dead/stuck pixels, panel liquid damage, OLED ghosting, and LCD scanlines
+- Crack spread and visibility are independently adjustable; built-in crack presets use a subtler translucent-glass treatment
 - Editable custom scenes with create, duplicate, rename, and delete actions
 - Countdown start and automatic stop timers
 - Quick Settings tile and notification stop action

@@ -23,6 +23,8 @@ object ScenePresets {
                 effects = DamageEffects(
                     crackedScreen = true,
                     crackStrength = 88,
+                    crackPattern = CrackPattern.RADIAL_IMPACT,
+                    crackOpacityPercent = 38,
                     deadPixels = true,
                     deadPixelStrength = 22,
                     liquidDamage = true,
@@ -83,6 +85,8 @@ object ScenePresets {
                 effects = DamageEffects(
                     crackedScreen = true,
                     crackStrength = 94,
+                    crackPattern = CrackPattern.CORNER_SHATTER,
+                    crackOpacityPercent = 45,
                     deadPixels = true,
                     deadPixelStrength = 88,
                     liquidDamage = true,
