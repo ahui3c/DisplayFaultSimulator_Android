@@ -1,4 +1,12 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
+
+val signingPropertiesFile = rootProject.file("keystore.properties")
+val signingProperties = Properties().apply {
+    if (signingPropertiesFile.isFile) signingPropertiesFile.inputStream().use(::load)
+}
+val hasConsistentSigning = listOf("storeFile", "storePassword", "keyAlias", "keyPassword")
+    .all { signingProperties.getProperty(it).isNullOrBlank().not() }
 
 plugins {
     id("com.android.application")
@@ -13,12 +21,27 @@ android {
         applicationId = "tw.chehu.displayfaultsimulator"
         minSdk = 26
         targetSdk = 36
-        versionCode = 10401
-        versionName = "1.4.1"
+        versionCode = 10701
+        versionName = "1.7.1"
+    }
+
+    signingConfigs {
+        if (hasConsistentSigning) {
+            create("consistentDevelopment") {
+                storeFile = file(signingProperties.getProperty("storeFile"))
+                storePassword = signingProperties.getProperty("storePassword")
+                keyAlias = signingProperties.getProperty("keyAlias")
+                keyPassword = signingProperties.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
+        debug {
+            if (hasConsistentSigning) signingConfig = signingConfigs.getByName("consistentDevelopment")
+        }
         release {
+            if (hasConsistentSigning) signingConfig = signingConfigs.getByName("consistentDevelopment")
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

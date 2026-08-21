@@ -12,7 +12,7 @@ Display Fault Simulator is an Android app that recreates common panel-failure vi
 
 ## Screenshots
 
-These screenshots were captured from the current v1.4.1 build running on an Android 16 emulator. The overlay screenshot confirms that the line reaches the physical top and bottom display bounds, including the status and navigation-bar areas.
+These screenshots were captured from real builds running on an Android 16 emulator. The overlay screenshot confirms that the line reaches the physical top and bottom display bounds, including the status and navigation-bar areas.
 
 | Full-screen overlay | Scene editor |
 | --- | --- |
@@ -41,9 +41,14 @@ These are real full-screen captures from the Android 16 emulator, not composited
 - Direct line dragging in the visual scene editor
 - Layerable spiderweb, radial-impact, corner-shatter, and hairline crack patterns, plus dead/stuck pixels, panel liquid damage, OLED ghosting, and LCD scanlines
 - Crack spread and visibility are independently adjustable; built-in crack presets use a subtler translucent-glass treatment
+- Up to 6 draggable impact points per scene with rotation, branch count, reach, region masks, chipped edges, shards, reflections, and tilt parallax
+- OLED black spots, colored edge bleed, uneven brightness, rainbow shift, pressure spots, tearing, partial blackout, flashes, PWM bands, and cable jumping
+- Animated reveal, expanding black spots/liquid, unstable split or recolored lines, event timeline, random faults, and automatic effect cycling
+- Shake, flip, charging, and unlock events can trigger the current scene or another selected scene
 - Editable custom scenes with create, duplicate, rename, and delete actions
 - Countdown start and automatic stop timers
 - Quick Settings tile and notification stop action
+- One-tap GitHub Release check with automatic download, verification, and Android update installer handoff
 - Foreground service, optional boot recovery, and battery-optimization guidance
 - Full touch-through overlay that does not capture screen content or intercept input
 
@@ -57,6 +62,9 @@ These are real full-screen captures from the Android 16 emulator, not composited
 - Loose display cable
 - Aged LCD scanlines
 - Light damage
+- Expanding OLED decay
+- Rainbow pressure damage
+- Dynamic intermittent failure
 - Severe damage
 
 Applying a preset creates a new editable scene and leaves existing scenes unchanged.
@@ -79,8 +87,10 @@ The APK attached to the current GitHub release is development-signed for direct 
 | Notifications | Keep the user-controlled foreground service visible and provide Stop |
 | Foreground service | Keep an active or scheduled effect running |
 | Boot completed | Optionally restore an unfinished effect after restart |
+| Internet | Read GitHub Release metadata and download an APK only after the user taps **Check for updates** |
+| Install unknown apps | Hand a verified update APK to Android's system installer; user confirmation is still required |
 
-The app has no internet permission, does not capture screen content, and does not collect or transmit personal data.
+The app does not capture screen content or collect or transmit personal data. Network access is used only when the user opens Online Update. Before installation, the APK is checked against its SHA-256 digest when supplied, package ID, version code, and signing certificate.
 
 ## Build from source
 
@@ -90,13 +100,13 @@ Requirements: Android Studio/JDK 17 and Android SDK 36.
 .\gradlew.bat assembleDebug lintDebug
 ```
 
-For the optimized unsigned release variant:
+For the optimized release variant:
 
 ```powershell
 .\gradlew.bat assembleRelease
 ```
 
-Sign the release APK with your own private production key before distribution.
+Android requires every update to use the same signing certificate. Copy `keystore.properties.example` to the Git-ignored `keystore.properties` and configure the key used by previous releases; both Debug and Release then use that consistent certificate. Without this file, Gradle falls back to the environment's default debug key and the Release build may remain unsigned, so it must not be published.
 
 ## Android limitations
 

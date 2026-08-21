@@ -8,6 +8,7 @@ import android.provider.Settings
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action !in SUPPORTED_ACTIONS) return
+        if (intent.action == Intent.ACTION_MY_PACKAGE_REPLACED) OnlineUpdateActivity.cleanupAfterUpdate(context)
         val settings = LineSettings(context)
         if (!settings.startOnBoot || !settings.serviceEnabled || !Settings.canDrawOverlays(context)) return
 

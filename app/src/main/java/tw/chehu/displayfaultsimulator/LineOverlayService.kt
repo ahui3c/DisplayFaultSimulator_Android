@@ -5,10 +5,16 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.res.Configuration
 import android.graphics.PixelFormat
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.Handler
 import android.os.Build
 import android.os.IBinder
@@ -21,13 +27,26 @@ import android.view.WindowManager
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
-class LineOverlayService : Service() {
+class LineOverlayService : Service(), SensorEventListener {
     private lateinit var windowManager: WindowManager
     private lateinit var settingsStore: LineSettings
     private lateinit var scenes: SceneRepository
     private val handler = Handler(Looper.getMainLooper())
     private var overlayView: DamageSceneView? = null
     private var movementOffsetPx = 0
+    private lateinit var sensorManager: SensorManager
+    private var lastShakeAt = 0L
+    private var lastFlipAt = 0L
+    private var lastZSign = 0
+    private val eventReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val dynamics = scenes.activeScene().dynamics
+            when (intent?.action) {
+                Intent.ACTION_POWER_CONNECTED -> if (dynamics.chargingTrigger) triggerSceneEvent()
+                Intent.ACTION_USER_PRESENT -> if (dynamics.unlockTrigger) triggerSceneEvent()
+            }
+        }
+    }
 
     private val showRunnable = Runnable {
         settingsStore.pendingStartAt = 0L
@@ -54,6 +73,13 @@ class LineOverlayService : Service() {
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         settingsStore = LineSettings(this)
         scenes = SceneRepository(this)
+        sensorManager = getSystemService(SensorManager::class.java)
+        val eventFilter = IntentFilter().apply {
+            addAction(Intent.ACTION_POWER_CONNECTED)
+            addAction(Intent.ACTION_USER_PRESENT)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) registerReceiver(eventReceiver, eventFilter, RECEIVER_NOT_EXPORTED)
+        else @Suppress("DEPRECATION") registerReceiver(eventReceiver, eventFilter)
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, buildNotification(getString(R.string.notification_preparing)))
     }
@@ -134,6 +160,63 @@ class LineOverlayService : Service() {
         movementOffsetPx = 0
         overlayView?.movementOffsetPx = 0
         scheduleMovement(scene)
+        configureSensors(scene)
+    }
+
+    private fun configureSensors(scene: DamageScene) {
+        sensorManager.unregisterListener(this)
+        val needsMotion = scene.effects.crackParallax || scene.dynamics.shakeTrigger || scene.dynamics.flipTrigger
+        if (needsMotion) {
+            sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.let {
+                sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
+            }
+        } else {
+            overlayView?.parallaxX = 0f
+            overlayView?.parallaxY = 0f
+        }
+    }
+
+    override fun onSensorChanged(event: SensorEvent) {
+        if (event.sensor.type != Sensor.TYPE_ACCELEROMETER || event.values.size < 3) return
+        val scene = scenes.activeScene()
+        val x = event.values[0]
+        val y = event.values[1]
+        val z = event.values[2]
+        if (scene.effects.crackParallax) {
+            overlayView?.parallaxX = (x / SensorManager.GRAVITY_EARTH).coerceIn(-1f, 1f)
+            overlayView?.parallaxY = (-y / SensorManager.GRAVITY_EARTH).coerceIn(-1f, 1f)
+        }
+        val now = System.currentTimeMillis()
+        if (scene.dynamics.shakeTrigger) {
+            val force = kotlin.math.sqrt(x * x + y * y + z * z) / SensorManager.GRAVITY_EARTH
+            if (force > 2.15f && now - lastShakeAt > 1_500L) {
+                lastShakeAt = now
+                triggerSceneEvent()
+            }
+        }
+        if (scene.dynamics.flipTrigger && kotlin.math.abs(z) > 7f) {
+            val sign = if (z >= 0f) 1 else -1
+            if (lastZSign != 0 && sign != lastZSign && now - lastFlipAt > 1_500L) {
+                lastFlipAt = now
+                triggerSceneEvent()
+            }
+            lastZSign = sign
+        }
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
+
+    private fun triggerSceneEvent() {
+        val triggerId = scenes.activeScene().dynamics.triggerSceneId
+        if (!triggerId.isNullOrBlank()) {
+            scenes.find(triggerId)?.let { target ->
+                scenes.activeSceneId = target.id
+                overlayView?.updateScene(target, keepSelection = false)
+                configureSensors(target)
+                scheduleMovement(target)
+            }
+        }
+        overlayView?.triggerEventPulse()
     }
 
     private fun buildLayoutParams(): WindowManager.LayoutParams {
@@ -202,6 +285,7 @@ class LineOverlayService : Service() {
 
     private fun removeOverlay() {
         handler.removeCallbacks(movementRunnable)
+        sensorManager.unregisterListener(this)
         overlayView?.let { runCatching { windowManager.removeView(it) } }
         overlayView = null
         movementOffsetPx = 0
@@ -229,6 +313,8 @@ class LineOverlayService : Service() {
 
     override fun onDestroy() {
         handler.removeCallbacksAndMessages(null)
+        sensorManager.unregisterListener(this)
+        runCatching { unregisterReceiver(eventReceiver) }
         removeOverlay()
         super.onDestroy()
     }

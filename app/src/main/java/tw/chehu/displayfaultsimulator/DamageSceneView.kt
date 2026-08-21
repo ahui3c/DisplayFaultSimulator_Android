@@ -9,6 +9,7 @@ import android.graphics.Path
 import android.graphics.RadialGradient
 import android.graphics.RectF
 import android.graphics.Shader
+import android.os.SystemClock
 import android.view.MotionEvent
 import android.view.View
 import kotlin.math.abs
@@ -28,10 +29,20 @@ class DamageSceneView(context: Context) : View(context) {
     var editorMode: Boolean = false
     var selectedLineId: Long? = null
         private set
+    var selectedCrackId: Long? = null
+        private set
     var onSceneChanged: ((DamageScene) -> Unit)? = null
     var onSelectionChanged: ((Long) -> Unit)? = null
+    var onCrackSelectionChanged: ((Long) -> Unit)? = null
+    var parallaxX: Float = 0f
+        set(value) { field = value; invalidate() }
+    var parallaxY: Float = 0f
+        set(value) { field = value; invalidate() }
 
     private var flickerFactor = 1f
+    private var sceneStartedAt = SystemClock.elapsedRealtime()
+    private var eventPulseUntil = 0L
+    private var dragTarget = DragTarget.NONE
     private val flickerRunnable = object : Runnable {
         override fun run() {
             if (!isAttachedToWindow || scene.lines.none { it.flicker }) return
@@ -43,10 +54,14 @@ class DamageSceneView(context: Context) : View(context) {
 
     fun updateScene(value: DamageScene, keepSelection: Boolean = true) {
         scene = value
+        sceneStartedAt = SystemClock.elapsedRealtime()
         if (!keepSelection || scene.lines.none { it.id == selectedLineId }) {
             selectedLineId = scene.lines.firstOrNull()?.id
         }
+        val impacts = resolvedCrackImpacts(scene)
+        if (!keepSelection || impacts.none { it.id == selectedCrackId }) selectedCrackId = impacts.firstOrNull()?.id
         restartFlicker()
+        restartAnimation()
         invalidate()
     }
 
@@ -57,14 +72,37 @@ class DamageSceneView(context: Context) : View(context) {
             invalidate()
         }
     }
+    private val animationRunnable = object : Runnable {
+        override fun run() {
+            if (!isAttachedToWindow || !needsAnimation()) return
+            invalidate()
+            postDelayed(this, 50L)
+        }
+    }
+
+    fun selectCrack(id: Long) {
+        if (resolvedCrackImpacts(scene).any { it.id == id }) {
+            selectedCrackId = id
+            onCrackSelectionChanged?.invoke(id)
+            invalidate()
+        }
+    }
+
+    fun triggerEventPulse(durationMs: Long = 1_600L) {
+        eventPulseUntil = SystemClock.elapsedRealtime() + durationMs
+        restartAnimation()
+        invalidate()
+    }
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         restartFlicker()
+        restartAnimation()
     }
 
     override fun onDetachedFromWindow() {
         removeCallbacks(flickerRunnable)
+        removeCallbacks(animationRunnable)
         super.onDetachedFromWindow()
     }
 
@@ -72,6 +110,19 @@ class DamageSceneView(context: Context) : View(context) {
         removeCallbacks(flickerRunnable)
         flickerFactor = 1f
         if (isAttachedToWindow && scene.lines.any { it.flicker }) post(flickerRunnable)
+    }
+
+    private fun restartAnimation() {
+        removeCallbacks(animationRunnable)
+        if (isAttachedToWindow && needsAnimation()) post(animationRunnable)
+    }
+
+    private fun needsAnimation(): Boolean {
+        val d = scene.dynamics
+        val e = scene.effects
+        return d.animatedEntry || d.impactFlash || d.expandingDamage || d.unstableLines ||
+            d.timelineEnabled || d.randomFaults || d.cycleEffects || e.intermittentFlash ||
+            e.screenTearing || e.cableJump || e.pwmBands || eventPulseUntil > SystemClock.elapsedRealtime()
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -82,31 +133,65 @@ class DamageSceneView(context: Context) : View(context) {
             density = resources.displayMetrics.density,
             movementOffsetPx = movementOffsetPx,
             flickerFactor = flickerFactor,
-            selectedLineId = if (editorMode) selectedLineId else null
+            selectedLineId = if (editorMode) selectedLineId else null,
+            selectedCrackId = if (editorMode) selectedCrackId else null,
+            elapsedMs = SystemClock.elapsedRealtime() - sceneStartedAt,
+            eventPulse = eventPulseUntil > SystemClock.elapsedRealtime(),
+            parallaxX = parallaxX,
+            parallaxY = parallaxY
         )
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (!editorMode || scene.lines.isEmpty()) return false
+        if (!editorMode) return false
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
+                val crack = resolvedCrackImpacts(scene).minByOrNull {
+                    val dx = event.x - width * it.xPercent / 100f
+                    val dy = event.y - height * it.yPercent / 100f
+                    dx * dx + dy * dy
+                }
+                if (crack != null) {
+                    val dx = event.x - width * crack.xPercent / 100f
+                    val dy = event.y - height * crack.yPercent / 100f
+                    if (dx * dx + dy * dy <= dp(38f) * dp(38f)) {
+                        selectCrack(crack.id)
+                        dragTarget = DragTarget.CRACK
+                        parent?.requestDisallowInterceptTouchEvent(true)
+                        return true
+                    }
+                }
                 val nearest = scene.lines.minByOrNull { abs(event.x - width * it.positionPercent / 100f) } ?: return false
                 val distance = abs(event.x - width * nearest.positionPercent / 100f)
                 if (distance > max(dp(34f), dp(nearest.widthDp.toFloat()) * 2f)) return false
                 selectLine(nearest.id)
+                dragTarget = DragTarget.LINE
                 parent?.requestDisallowInterceptTouchEvent(true)
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
-                val id = selectedLineId ?: return false
-                val percent = (event.x / width.coerceAtLeast(1) * 100f).coerceIn(0f, 100f)
-                scene = scene.copy(lines = scene.lines.map { if (it.id == id) it.copy(positionPercent = percent) else it })
+                when (dragTarget) {
+                    DragTarget.LINE -> {
+                        val id = selectedLineId ?: return false
+                        val percent = (event.x / width.coerceAtLeast(1) * 100f).coerceIn(0f, 100f)
+                        scene = scene.copy(lines = scene.lines.map { if (it.id == id) it.copy(positionPercent = percent) else it })
+                    }
+                    DragTarget.CRACK -> {
+                        val id = selectedCrackId ?: return false
+                        val x = (event.x / width.coerceAtLeast(1) * 100f).coerceIn(0f, 100f)
+                        val y = (event.y / height.coerceAtLeast(1) * 100f).coerceIn(0f, 100f)
+                        val impacts = resolvedCrackImpacts(scene).map { if (it.id == id) it.copy(xPercent = x, yPercent = y) else it }
+                        scene = scene.copy(effects = scene.effects.copy(crackImpacts = impacts))
+                    }
+                    DragTarget.NONE -> return false
+                }
                 onSceneChanged?.invoke(scene)
                 invalidate()
                 return true
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 parent?.requestDisallowInterceptTouchEvent(false)
+                dragTarget = DragTarget.NONE
                 performClick()
                 return true
             }
@@ -120,6 +205,19 @@ class DamageSceneView(context: Context) : View(context) {
     }
 
     private fun dp(value: Float) = value * resources.displayMetrics.density
+    private enum class DragTarget { NONE, LINE, CRACK }
+}
+
+fun resolvedCrackImpacts(scene: DamageScene): List<CrackImpact> = scene.effects.crackImpacts.ifEmpty {
+    when (scene.effects.crackPattern) {
+        CrackPattern.CORNER_SHATTER -> listOf(
+            CrackImpact(-101L, 4f, 10f, branchCount = 17, lengthPercent = 78),
+            CrackImpact(-102L, 96f, 84f, rotationDegrees = 180, branchCount = 12, lengthPercent = 58)
+        )
+        CrackPattern.HAIRLINE -> listOf(CrackImpact(-201L, 50f, 2f, branchCount = 7, lengthPercent = 94))
+        CrackPattern.RADIAL_IMPACT -> listOf(CrackImpact(-301L, 54f, 43f, branchCount = 18, lengthPercent = 92))
+        CrackPattern.SPIDERWEB -> listOf(CrackImpact(-401L, 72f, 29f, branchCount = 16, lengthPercent = 72))
+    }
 }
 
 object SceneRenderer {
@@ -132,42 +230,102 @@ object SceneRenderer {
         density: Float,
         movementOffsetPx: Int,
         flickerFactor: Float,
-        selectedLineId: Long?
+        selectedLineId: Long?,
+        selectedCrackId: Long?,
+        elapsedMs: Long,
+        eventPulse: Boolean,
+        parallaxX: Float,
+        parallaxY: Float
     ) {
-        drawLiquidDamage(canvas, scene.effects, density)
-        drawCrackedScreen(canvas, scene, density)
+        val entryProgress = if (scene.dynamics.animatedEntry) (elapsedMs / 1_500f).coerceIn(0f, 1f) else 1f
+        AdvancedEffectsRenderer.draw(canvas, scene, density, elapsedMs, eventPulse, entryProgress)
+        drawLiquidDamage(canvas, scene.effects, density, if (scene.dynamics.expandingDamage) expansionProgress(elapsedMs) else 1f)
+        drawCrackedScreen(canvas, scene, density, selectedCrackId, parallaxX, parallaxY, entryProgress)
         drawGhosting(canvas, scene.effects, density)
         drawScanlines(canvas, scene.effects, density)
         drawDeadPixels(canvas, scene, density)
-        drawLines(canvas, scene, density, movementOffsetPx, flickerFactor, selectedLineId)
+        drawLines(canvas, scene, density, movementOffsetPx, flickerFactor, selectedLineId, elapsedMs)
         paint.shader = null
     }
 
-    private fun drawCrackedScreen(canvas: Canvas, scene: DamageScene, density: Float) {
+    private fun expansionProgress(elapsedMs: Long): Float = (0.28f + (elapsedMs / 12_000f).coerceIn(0f, 0.72f))
+
+    private fun drawCrackedScreen(
+        canvas: Canvas,
+        scene: DamageScene,
+        density: Float,
+        selectedCrackId: Long?,
+        parallaxX: Float,
+        parallaxY: Float,
+        entryProgress: Float
+    ) {
         val effects = scene.effects
         if (!effects.crackedScreen) return
-        val strength = effects.crackStrength.coerceIn(0, 100)
-        val opacity = effects.crackOpacityPercent.coerceIn(10, 100)
-        val seed = scene.id.hashCode()
-        when (effects.crackPattern) {
-            CrackPattern.SPIDERWEB -> {
-                drawCrackImpact(canvas, canvas.width * 0.72f, canvas.height * 0.29f, strength, opacity, density, seed, 1f, true)
-                if (strength >= 62) {
-                    drawCrackImpact(canvas, canvas.width * 0.23f, canvas.height * 0.68f, (strength * 0.68f).toInt(), opacity, density, seed xor 0x5F3759DF, 0.72f, true)
-                }
+        val strength = (effects.crackStrength.coerceIn(0, 100) * entryProgress).toInt()
+        val opacity = (effects.crackOpacityPercent.coerceIn(10, 100) * entryProgress).toInt().coerceAtLeast(3)
+        val impacts = resolvedCrackImpacts(scene)
+        val offsetX = if (effects.crackParallax) parallaxX * 7f * density else 0f
+        val offsetY = if (effects.crackParallax) parallaxY * 7f * density else 0f
+        val save = canvas.save()
+        applyCrackMask(canvas, effects.crackMask, impacts, density)
+        if (effects.crackPattern == CrackPattern.HAIRLINE) {
+            impacts.forEachIndexed { index, impact ->
+                drawHairlineCracks(
+                    canvas = canvas,
+                    centerX = canvas.width * impact.xPercent / 100f + offsetX,
+                    centerY = canvas.height * impact.yPercent / 100f + offsetY,
+                    strength = strength,
+                    opacityPercent = opacity,
+                    density = density,
+                    seed = scene.id.hashCode() xor impact.seedOffset xor index * 0x45D9F3B,
+                    lengthScale = impact.lengthPercent / 72f,
+                    branchCount = impact.branchCount,
+                    rotationDegrees = impact.rotationDegrees
+                )
             }
-            CrackPattern.RADIAL_IMPACT ->
-                drawCrackImpact(canvas, canvas.width * 0.54f, canvas.height * 0.43f, strength, opacity, density, seed, 1.28f, false)
-            CrackPattern.CORNER_SHATTER -> {
-                drawCrackImpact(canvas, canvas.width * 0.04f, canvas.height * 0.10f, strength, opacity, density, seed, 0.92f, true)
-                if (strength >= 48) {
-                    drawCrackImpact(canvas, canvas.width * 0.96f, canvas.height * 0.84f, (strength * 0.72f).toInt(), opacity, density, seed xor 0x3C6EF372, 0.68f, false)
-                }
-            }
-            CrackPattern.HAIRLINE -> drawHairlineCracks(canvas, strength, opacity, density, seed)
+        } else impacts.forEachIndexed { index, impact ->
+            drawCrackImpact(
+                canvas = canvas,
+                centerX = canvas.width * impact.xPercent / 100f + offsetX,
+                centerY = canvas.height * impact.yPercent / 100f + offsetY,
+                strength = strength,
+                opacityPercent = opacity,
+                density = density,
+                seed = scene.id.hashCode() xor impact.seedOffset xor index * 0x45D9F3B,
+                lengthScale = impact.lengthPercent / 72f,
+                drawRings = effects.crackPattern == CrackPattern.SPIDERWEB || effects.crackPattern == CrackPattern.CORNER_SHATTER,
+                branchCount = impact.branchCount,
+                rotationDegrees = impact.rotationDegrees
+            )
         }
+        if (effects.edgeChips) drawEdgeChips(canvas, scene, density, opacity)
+        if (effects.glassShards) drawGlassShards(canvas, scene, density, opacity)
+        if (effects.glassReflection) drawGlassReflection(canvas, impacts, density, opacity)
+        canvas.restoreToCount(save)
+        selectedCrackId?.let { id -> impacts.firstOrNull { it.id == id }?.let { drawCrackHandle(canvas, it, density) } }
     }
 
+    private fun applyCrackMask(canvas: Canvas, mask: CrackMask, impacts: List<CrackImpact>, density: Float) {
+        when (mask) {
+            CrackMask.FULL_SCREEN -> Unit
+            CrackMask.TOP_LEFT -> canvas.clipRect(0f, 0f, canvas.width * 0.62f, canvas.height * 0.58f)
+            CrackMask.SCREEN_EDGES -> {
+                val path = Path().apply {
+                    fillType = Path.FillType.EVEN_ODD
+                    addRect(0f, 0f, canvas.width.toFloat(), canvas.height.toFloat(), Path.Direction.CW)
+                    addRect(72f * density, 110f * density, canvas.width - 72f * density, canvas.height - 110f * density, Path.Direction.CW)
+                }
+                canvas.clipPath(path)
+            }
+            CrackMask.AROUND_IMPACTS -> {
+                val path = Path()
+                impacts.forEach { impact ->
+                    path.addCircle(canvas.width * impact.xPercent / 100f, canvas.height * impact.yPercent / 100f, canvas.width * 0.34f, Path.Direction.CW)
+                }
+                canvas.clipPath(path)
+            }
+        }
+    }
     private fun drawCrackImpact(
         canvas: Canvas,
         centerX: Float,
@@ -177,15 +335,18 @@ object SceneRenderer {
         density: Float,
         seed: Int,
         lengthScale: Float,
-        drawRings: Boolean
+        drawRings: Boolean,
+        branchCount: Int,
+        rotationDegrees: Int
     ) {
         val random = Random(seed)
-        val rayCount = 7 + strength / 8
+        val rayCount = branchCount.coerceIn(3, 28)
         val maxLength = max(canvas.width, canvas.height) * (0.16f + strength / 225f) * lengthScale
         val paths = mutableListOf<Path>()
 
         repeat(rayCount) { ray ->
-            val baseAngle = (Math.PI * 2.0 * ray / rayCount).toFloat() + (random.nextFloat() - 0.5f) * 0.32f
+            val baseAngle = Math.toRadians(rotationDegrees.toDouble()).toFloat() +
+                (Math.PI * 2.0 * ray / rayCount).toFloat() + (random.nextFloat() - 0.5f) * 0.32f
             val length = maxLength * (0.46f + random.nextFloat() * 0.58f)
             val segments = 4 + random.nextInt(4)
             val path = Path().apply { moveTo(centerX, centerY) }
@@ -246,23 +407,118 @@ object SceneRenderer {
         canvas.drawCircle(centerX, centerY, density * (1.2f + strength / 55f), paint)
     }
 
-    private fun drawHairlineCracks(canvas: Canvas, strength: Int, opacityPercent: Int, density: Float, seed: Int) {
+    private fun drawEdgeChips(canvas: Canvas, scene: DamageScene, density: Float, opacity: Int) {
+        val random = Random(scene.id.hashCode() xor 0x2C1B3C6D)
+        paint.style = Paint.Style.FILL
+        repeat(7) { index ->
+            val onLeft = index % 2 == 0
+            val x = if (onLeft) 0f else canvas.width.toFloat()
+            val y = canvas.height * (0.08f + random.nextFloat() * 0.84f)
+            val size = density * (8f + random.nextFloat() * 18f)
+            val path = Path().apply {
+                moveTo(x, y - size)
+                lineTo(x + if (onLeft) size * 1.5f else -size * 1.5f, y)
+                lineTo(x, y + size)
+                close()
+            }
+            paint.color = Color.argb((opacity * 1.25f).toInt().coerceAtMost(145), 3, 5, 7)
+            canvas.drawPath(path, paint)
+            paint.style = Paint.Style.STROKE
+            paint.strokeWidth = density * 0.45f
+            paint.color = Color.argb(opacity.coerceAtMost(110), 235, 244, 247)
+            canvas.drawPath(path, paint)
+            paint.style = Paint.Style.FILL
+        }
+    }
+
+    private fun drawGlassShards(canvas: Canvas, scene: DamageScene, density: Float, opacity: Int) {
+        val random = Random(scene.id.hashCode() xor 0x6A09E667)
+        repeat(9) {
+            val cx = random.nextFloat() * canvas.width
+            val cy = random.nextFloat() * canvas.height
+            val size = density * (7f + random.nextFloat() * 18f)
+            val path = Path().apply {
+                moveTo(cx, cy - size)
+                lineTo(cx + size * 0.7f, cy + size * 0.55f)
+                lineTo(cx - size * 0.45f, cy + size * 0.25f)
+                close()
+            }
+            paint.style = Paint.Style.FILL
+            paint.color = Color.argb((opacity * 0.18f).toInt().coerceAtLeast(3), 220, 240, 246)
+            canvas.drawPath(path, paint)
+            paint.style = Paint.Style.STROKE
+            paint.strokeWidth = density * 0.35f
+            paint.color = Color.argb((opacity * 0.7f).toInt().coerceAtLeast(6), 240, 248, 250)
+            canvas.drawPath(path, paint)
+        }
+    }
+
+    private fun drawGlassReflection(canvas: Canvas, impacts: List<CrackImpact>, density: Float, opacity: Int) {
+        paint.shader = LinearGradient(
+            0f, 0f, canvas.width.toFloat(), canvas.height.toFloat(),
+            intArrayOf(Color.TRANSPARENT, Color.argb((opacity * 0.18f).toInt(), 235, 248, 255), Color.TRANSPARENT),
+            floatArrayOf(0.18f, 0.5f, 0.82f), Shader.TileMode.CLAMP
+        )
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = density * 4f
+        impacts.forEach { impact ->
+            val cx = canvas.width * impact.xPercent / 100f
+            val cy = canvas.height * impact.yPercent / 100f
+            canvas.drawArc(cx - 42f * density, cy - 42f * density, cx + 42f * density, cy + 42f * density, 205f, 70f, false, paint)
+        }
+        paint.shader = null
+    }
+
+    private fun drawCrackHandle(canvas: Canvas, impact: CrackImpact, density: Float) {
+        val cx = canvas.width * impact.xPercent / 100f
+        val cy = canvas.height * impact.yPercent / 100f
+        paint.shader = null
+        paint.style = Paint.Style.FILL
+        paint.color = Color.argb(220, 8, 122, 54)
+        canvas.drawCircle(cx, cy, density * 8f, paint)
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = density * 2f
+        paint.color = Color.WHITE
+        canvas.drawCircle(cx, cy, density * 12f, paint)
+    }
+
+    private fun drawHairlineCracks(
+        canvas: Canvas,
+        centerX: Float,
+        centerY: Float,
+        strength: Int,
+        opacityPercent: Int,
+        density: Float,
+        seed: Int,
+        lengthScale: Float,
+        branchCount: Int,
+        rotationDegrees: Int
+    ) {
         val random = Random(seed)
         val paths = mutableListOf<Path>()
-        repeat(3 + strength / 24) { index ->
-            var x = canvas.width * (0.08f + random.nextFloat() * 0.84f)
-            var y = if (index % 2 == 0) -density else canvas.height + density
-            val direction = if (index % 2 == 0) 1f else -1f
+        val rayCount = branchCount.coerceIn(3, 28)
+        val maxLength = max(canvas.width, canvas.height) * (0.2f + strength / 150f) * lengthScale
+        repeat(rayCount) { index ->
+            val angle = Math.toRadians(rotationDegrees.toDouble()).toFloat() +
+                (Math.PI * 2.0 * index / rayCount).toFloat() + (random.nextFloat() - 0.5f) * 0.38f
+            val length = maxLength * (0.5f + random.nextFloat() * 0.5f)
+            var x = centerX
+            var y = centerY
             val path = Path().apply { moveTo(x, y) }
-            repeat(8 + strength / 14) { segment ->
-                y += direction * canvas.height / (8f + strength / 14f)
-                x += (random.nextFloat() - 0.5f) * canvas.width * (0.07f + strength / 1800f)
+            val segmentCount = 7 + strength / 16
+            repeat(segmentCount) { segment ->
+                val step = length / segmentCount
+                val lateralJitter = (random.nextFloat() - 0.5f) * step * 0.62f
+                x += cos(angle) * step - sin(angle) * lateralJitter
+                y += sin(angle) * step + cos(angle) * lateralJitter
                 path.lineTo(x, y)
-                if (segment > 1 && segment % 4 == 0) {
-                    val branchLength = canvas.width * (0.035f + random.nextFloat() * 0.055f)
+                if (segment > 1 && segment % 3 == 0) {
+                    val branchLength = length * (0.06f + random.nextFloat() * 0.08f)
+                    val branchAngle = angle + (if (random.nextBoolean()) 1f else -1f) *
+                        (0.48f + random.nextFloat() * 0.42f)
                     paths += Path().apply {
                         moveTo(x, y)
-                        lineTo(x + (if (random.nextBoolean()) 1 else -1) * branchLength, y + direction * branchLength * 0.7f)
+                        lineTo(x + cos(branchAngle) * branchLength, y + sin(branchAngle) * branchLength)
                     }
                 }
             }
@@ -287,11 +543,17 @@ object SceneRenderer {
         density: Float,
         movementOffsetPx: Int,
         flickerFactor: Float,
-        selectedLineId: Long?
+        selectedLineId: Long?,
+        elapsedMs: Long
     ) {
         scene.lines.forEach { line ->
+            val unstable = scene.dynamics.unstableLines
+            val random = Random(scene.id.hashCode() xor line.id.toInt() xor (elapsedMs / 320L).toInt())
+            if (unstable && random.nextFloat() < 0.16f) return@forEach
+            if (scene.dynamics.cycleEffects && ((elapsedMs / (scene.dynamics.cycleSeconds * 1_000L)) % 3L) == 1L) return@forEach
             val width = max(1f, line.widthDp * density)
-            val center = (canvas.width - width) * line.positionPercent / 100f + movementOffsetPx
+            val jump = if (unstable) (random.nextFloat() - 0.5f) * density * 9f else 0f
+            val center = (canvas.width - width) * line.positionPercent / 100f + movementOffsetPx + jump
             val left = center.coerceIn(0f, (canvas.width - width).coerceAtLeast(0f))
             val right = (left + width).coerceAtMost(canvas.width.toFloat())
             val flicker = if (line.flicker) {
@@ -316,10 +578,17 @@ object SceneRenderer {
                 paint.shader = null
             }
 
-            paint.color = line.color
+            paint.color = if (unstable && random.nextFloat() < 0.22f) {
+                when (random.nextInt(3)) { 0 -> Color.CYAN; 1 -> Color.MAGENTA; else -> Color.WHITE }
+            } else line.color
             paint.alpha = alpha
             paint.style = Paint.Style.FILL
             canvas.drawRect(left, 0f, right, canvas.height.toFloat(), paint)
+            if (unstable && random.nextFloat() < 0.30f) {
+                val split = density * (2f + random.nextFloat() * 5f)
+                paint.alpha = (alpha * 0.58f).toInt()
+                canvas.drawRect((left + split).coerceAtMost(canvas.width.toFloat()), 0f, (right + split).coerceAtMost(canvas.width.toFloat()), canvas.height.toFloat(), paint)
+            }
 
             if (selectedLineId == line.id) {
                 paint.color = Color.WHITE
@@ -356,7 +625,7 @@ object SceneRenderer {
         }
     }
 
-    private fun drawLiquidDamage(canvas: Canvas, effects: DamageEffects, density: Float) {
+    private fun drawLiquidDamage(canvas: Canvas, effects: DamageEffects, density: Float, expansion: Float) {
         if (!effects.liquidDamage) return
         val strength = effects.liquidStrength / 100f
         val blobs = listOf(
@@ -367,7 +636,7 @@ object SceneRenderer {
         blobs.forEachIndexed { index, blob ->
             val cx = blob[0] * canvas.width
             val cy = blob[1] * canvas.height
-            val radius = blob[2] * canvas.width * (0.7f + strength * 0.55f)
+            val radius = blob[2] * canvas.width * (0.7f + strength * 0.55f) * expansion
             val core = if (index == 1) Color.argb((150 * strength).toInt(), 30, 0, 55) else Color.argb((190 * strength).toInt(), 0, 0, 0)
             paint.shader = RadialGradient(
                 cx,

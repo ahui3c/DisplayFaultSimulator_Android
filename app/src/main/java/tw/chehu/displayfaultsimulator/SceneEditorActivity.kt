@@ -179,6 +179,7 @@ class SceneEditorActivity : Activity() {
             scanlineSwitch = effectSwitch(getString(R.string.effect_scanlines)); addView(scanlineSwitch)
             scanlineSeek = effectSeek(); addView(scanlineSeek)
             addView(textView(getString(R.string.effect_strength_description), 13f, Color.rgb(90, 102, 96)).apply { setPadding(0, dp(8), 0, 0) })
+            addView(actionButton(getString(R.string.advanced_effects_button)) { openAdvancedEditor() })
         }, marginBottom())
 
         content.addView(actionButton(getString(R.string.save_and_apply_scene)) { saveAndFinish() }.apply {
@@ -368,6 +369,24 @@ class SceneEditorActivity : Activity() {
         finish()
     }
 
+    private fun openAdvancedEditor() {
+        workingScene = workingScene.copy(name = nameInput.text.toString().trim().ifBlank { getString(R.string.unnamed_scene) })
+        repository.upsert(workingScene)
+        startActivityForResult(
+            Intent(this, AdvancedSettingsActivity::class.java).putExtra(AdvancedSettingsActivity.EXTRA_SCENE_ID, workingScene.id),
+            REQUEST_ADVANCED
+        )
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_ADVANCED && resultCode == RESULT_OK) {
+            workingScene = repository.find(workingScene.id) ?: workingScene
+            syncAllControls()
+        }
+    }
+
     private fun SeekBar.listen(action: () -> Unit) {
         setOnSeekBarChangeListener(SimpleSeekListener { if (!syncing) action() })
     }
@@ -400,5 +419,8 @@ class SceneEditorActivity : Activity() {
     private data class ColorOption(val name: String, val color: Int)
     private data class CrackPatternOption(val name: String, val pattern: CrackPattern)
 
-    companion object { const val EXTRA_SCENE_ID = "scene_id" }
+    companion object {
+        const val EXTRA_SCENE_ID = "scene_id"
+        private const val REQUEST_ADVANCED = 402
+    }
 }
