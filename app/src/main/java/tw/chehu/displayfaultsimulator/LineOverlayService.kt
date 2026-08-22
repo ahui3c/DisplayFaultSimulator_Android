@@ -22,8 +22,10 @@ import android.os.Looper
 import android.provider.Settings
 import android.service.quicksettings.TileService
 import android.view.Gravity
+import android.view.Surface
 import android.view.View
 import android.view.WindowManager
+import android.widget.FrameLayout
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
@@ -32,6 +34,7 @@ class LineOverlayService : Service(), SensorEventListener {
     private lateinit var settingsStore: LineSettings
     private lateinit var scenes: SceneRepository
     private val handler = Handler(Looper.getMainLooper())
+    private var overlayContainer: FrameLayout? = null
     private var overlayView: DamageSceneView? = null
     private var movementOffsetPx = 0
     private lateinit var sensorManager: SensorManager
@@ -146,16 +149,29 @@ class LineOverlayService : Service(), SensorEventListener {
     private fun showOrUpdateOverlay() {
         val scene = scenes.activeScene()
         if (overlayView == null) {
-            overlayView = DamageSceneView(this).apply {
+            val damageView = DamageSceneView(this).apply {
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
                 systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
                     View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
                     View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 updateScene(scene, keepSelection = false)
             }
-            windowManager.addView(overlayView, buildLayoutParams())
+            overlayView = damageView
+            overlayContainer = FrameLayout(this).apply {
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                clipChildren = false
+                clipToPadding = false
+                systemUiVisibility = damageView.systemUiVisibility
+                addView(damageView)
+            }.also { container ->
+                windowManager.addView(container, buildLayoutParams())
+                applyHardwareAnchoredTransform(container, damageView)
+            }
         } else {
             overlayView?.updateScene(scene)
+            overlayContainer?.let { container ->
+                overlayView?.let { damageView -> applyHardwareAnchoredTransform(container, damageView) }
+            }
         }
         movementOffsetPx = 0
         overlayView?.movementOffsetPx = 0
@@ -220,13 +236,7 @@ class LineOverlayService : Service(), SensorEventListener {
     }
 
     private fun buildLayoutParams(): WindowManager.LayoutParams {
-        val displayBounds = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            windowManager.maximumWindowMetrics.bounds
-        } else {
-            @Suppress("DEPRECATION")
-            android.graphics.Point().also { windowManager.defaultDisplay.getRealSize(it) }
-                .let { android.graphics.Rect(0, 0, it.x, it.y) }
-        }
+        val displayBounds = currentDisplayBounds()
         return WindowManager.LayoutParams(
             displayBounds.width(),
             displayBounds.height(),
@@ -253,6 +263,51 @@ class LineOverlayService : Service(), SensorEventListener {
             }
         }
     }
+
+    /**
+     * Keeps simulated damage in the display panel's natural coordinate space.
+     * Android rotates window coordinates with the UI, so the damage child uses the
+     * panel's natural size and is mapped into the current display rotation. Cracks,
+     * lines and pixels therefore remain attached to the same physical glass area.
+     */
+    private fun applyHardwareAnchoredTransform(container: FrameLayout, damageView: DamageSceneView) {
+        val bounds = currentDisplayBounds()
+        val rotation = currentDisplayRotation()
+        val quarterTurn = rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270
+        val naturalWidth = if (quarterTurn) bounds.height() else bounds.width()
+        val naturalHeight = if (quarterTurn) bounds.width() else bounds.height()
+
+        damageView.layoutParams = FrameLayout.LayoutParams(naturalWidth, naturalHeight)
+        damageView.pivotX = 0f
+        damageView.pivotY = 0f
+        damageView.rotation = when (rotation) {
+            Surface.ROTATION_90 -> 270f
+            Surface.ROTATION_180 -> 180f
+            Surface.ROTATION_270 -> 90f
+            else -> 0f
+        }
+        damageView.translationX = when (rotation) {
+            Surface.ROTATION_180, Surface.ROTATION_270 -> bounds.width().toFloat()
+            else -> 0f
+        }
+        damageView.translationY = when (rotation) {
+            Surface.ROTATION_90, Surface.ROTATION_180 -> bounds.height().toFloat()
+            else -> 0f
+        }
+        container.requestLayout()
+        damageView.invalidate()
+    }
+
+    private fun currentDisplayBounds() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        windowManager.maximumWindowMetrics.bounds
+    } else {
+        @Suppress("DEPRECATION")
+        android.graphics.Point().also { windowManager.defaultDisplay.getRealSize(it) }
+            .let { android.graphics.Rect(0, 0, it.x, it.y) }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun currentDisplayRotation(): Int = windowManager.defaultDisplay.rotation
 
     private fun scheduleMovement(scene: DamageScene) {
         handler.removeCallbacks(movementRunnable)
@@ -286,7 +341,8 @@ class LineOverlayService : Service(), SensorEventListener {
     private fun removeOverlay() {
         handler.removeCallbacks(movementRunnable)
         sensorManager.unregisterListener(this)
-        overlayView?.let { runCatching { windowManager.removeView(it) } }
+        overlayContainer?.let { runCatching { windowManager.removeView(it) } }
+        overlayContainer = null
         overlayView = null
         movementOffsetPx = 0
     }
@@ -297,7 +353,10 @@ class LineOverlayService : Service(), SensorEventListener {
         overlayView?.apply {
             movementOffsetPx = 0
             updateScene(scenes.activeScene())
-            windowManager.updateViewLayout(this, buildLayoutParams())
+        }
+        overlayContainer?.let { container ->
+            windowManager.updateViewLayout(container, buildLayoutParams())
+            overlayView?.let { damageView -> applyHardwareAnchoredTransform(container, damageView) }
         }
         createNotificationChannel()
         val remaining = settingsStore.pendingStartAt - System.currentTimeMillis()

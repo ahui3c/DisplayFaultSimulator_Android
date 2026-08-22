@@ -1,0 +1,4 @@
+• Fixed fault effects rotating in the wrong direction with the app UI
+• Lines, cracks, liquid damage, and dead pixels now stay anchored to the physical display
+• Supports all four display rotations
+• Preserves full-screen coverage and touch-through behavior
