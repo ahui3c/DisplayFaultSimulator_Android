@@ -33,7 +33,7 @@
 ## 分類與聯絡資料
 
 - 類型：應用程式
-- 分類：娛樂
+- 分類：工具
 - 建議內容分級：普遍級
 - 支援電子郵件：ahui3c@gmail.com
 - 隱私權政策：https://github.com/ahui3c/DisplayFaultSimulator_Android/blob/main/PRIVACY_POLICY.md
