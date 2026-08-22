@@ -1,4 +1,4 @@
-# Display Fault Simulator（螢幕故障模擬器）
+# Display Fault Simulator（搞笑螢幕損壞模擬器）
 
 繁體中文 | [English](README.en.md)
 
@@ -48,7 +48,6 @@ Display Fault Simulator 是 Android 螢幕面板故障效果模擬工具，透�
 - 可新增、命名、複製與刪除自訂場景
 - 支援倒數啟動與自動停止
 - 快速設定磁貼與通知列停止按鈕
-- 一鍵檢查 GitHub Release；發現新版時自動下載、驗證並開啟 Android 更新安裝畫面
 - 前景服務、選用的開機恢復及電池最佳化設定引導
 - 上層畫面完全穿透觸控，不截取螢幕內容，也不攔截任何操作
 
@@ -87,10 +86,7 @@ Display Fault Simulator 是 Android 螢幕面板故障效果模擬工具，透�
 | 通知 | 顯示使用者可控制的前景服務與停止按鈕 |
 | 前景服務 | 維持正在顯示或已排程的效果 |
 | 開機完成 | 依使用者設定恢復尚未結束的效果 |
-| 網路 | 僅在使用者按下「檢查線上更新」後讀取 GitHub Release 資訊並下載新版 APK |
-| 安裝未知應用程式 | 將已驗證的新版 APK 交給 Android 系統安裝程式更新；仍須由使用者確認 |
-
-本 App 不會截取螢幕，也不會蒐集或傳送個人資料。網路功能只在使用者手動開啟線上更新頁面時使用；APK 會在安裝前檢查 SHA-256（Release 有提供時）、包名、版本碼及簽署憑證。
+本 App 不會截取螢幕、不使用網路，也不會蒐集、分享或傳送個人資料。場景與設定只儲存在使用者裝置內。
 
 ## 從原始碼建置
 
@@ -106,7 +102,7 @@ Display Fault Simulator 是 Android 螢幕面板故障效果模擬工具，透�
 .\gradlew.bat assembleRelease
 ```
 
-為了讓 Android 可以覆蓋安裝與使用線上更新，每次發布都必須使用相同簽章。可將 `keystore.properties.example` 複製為被 Git 忽略的 `keystore.properties` 並填入既有金鑰；設定完成後，Debug 與 Release 都會使用該固定簽章。若沒有設定，Gradle 會使用環境預設的 Debug 金鑰，Release 則可能保持未簽章，不適合發布。
+Android 的更新版本必須使用相容簽章。可將 `keystore.properties.example` 複製為被 Git 忽略的 `keystore.properties` 並填入既有金鑰；設定完成後，Debug 與 Release 都會使用該固定簽章。若沒有設定，Gradle 會使用環境預設的 Debug 金鑰，Release 則可能保持未簽章，不適合發布。
 
 ## Android 限制
 

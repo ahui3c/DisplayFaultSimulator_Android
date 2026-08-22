@@ -169,16 +169,6 @@ class MainActivity : Activity() {
         }, marginBottom())
 
         content.addView(card().apply {
-            addView(sectionTitle(getString(R.string.section_online_update)))
-            addView(body(getString(R.string.online_update_main_description)))
-            addView(actionButton(getString(R.string.check_online_update)) {
-                startActivity(Intent(this@MainActivity, OnlineUpdateActivity::class.java))
-            }.apply {
-                background = rounded(Color.rgb(232, 238, 234), 14f)
-            })
-        }, marginBottom())
-
-        content.addView(card().apply {
             addView(sectionTitle(getString(R.string.section_display_control)))
             serviceState = statusText()
             addView(serviceState)

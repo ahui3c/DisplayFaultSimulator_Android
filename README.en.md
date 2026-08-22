@@ -48,7 +48,6 @@ These are real full-screen captures from the Android 16 emulator, not composited
 - Editable custom scenes with create, duplicate, rename, and delete actions
 - Countdown start and automatic stop timers
 - Quick Settings tile and notification stop action
-- One-tap GitHub Release check with automatic download, verification, and Android update installer handoff
 - Foreground service, optional boot recovery, and battery-optimization guidance
 - Full touch-through overlay that does not capture screen content or intercept input
 
@@ -87,10 +86,7 @@ The APK attached to the current GitHub release is development-signed for direct 
 | Notifications | Keep the user-controlled foreground service visible and provide Stop |
 | Foreground service | Keep an active or scheduled effect running |
 | Boot completed | Optionally restore an unfinished effect after restart |
-| Internet | Read GitHub Release metadata and download an APK only after the user taps **Check for updates** |
-| Install unknown apps | Hand a verified update APK to Android's system installer; user confirmation is still required |
-
-The app does not capture screen content or collect or transmit personal data. Network access is used only when the user opens Online Update. Before installation, the APK is checked against its SHA-256 digest when supplied, package ID, version code, and signing certificate.
+The app does not capture screen content, use the network, or collect, share, or transmit personal data. Scenes and settings remain on the user's device.
 
 ## Build from source
 
@@ -106,7 +102,7 @@ For the optimized release variant:
 .\gradlew.bat assembleRelease
 ```
 
-Android requires every update to use the same signing certificate. Copy `keystore.properties.example` to the Git-ignored `keystore.properties` and configure the key used by previous releases; both Debug and Release then use that consistent certificate. Without this file, Gradle falls back to the environment's default debug key and the Release build may remain unsigned, so it must not be published.
+Android requires every update to use a compatible signing certificate. Copy `keystore.properties.example` to the Git-ignored `keystore.properties` and configure the key used by previous releases; both Debug and Release then use that consistent certificate. Without this file, Gradle falls back to the environment's default debug key and the Release build may remain unsigned, so it must not be published.
 
 ## Android limitations
 

@@ -7,6 +7,12 @@ val signingProperties = Properties().apply {
 }
 val hasConsistentSigning = listOf("storeFile", "storePassword", "keyAlias", "keyPassword")
     .all { signingProperties.getProperty(it).isNullOrBlank().not() }
+val playSigningPropertiesFile = rootProject.file("play-upload.properties")
+val playSigningProperties = Properties().apply {
+    if (playSigningPropertiesFile.isFile) playSigningPropertiesFile.inputStream().use(::load)
+}
+val hasPlayUploadSigning = listOf("storeFile", "storePassword", "keyAlias", "keyPassword")
+    .all { playSigningProperties.getProperty(it).isNullOrBlank().not() }
 
 plugins {
     id("com.android.application")
@@ -21,8 +27,8 @@ android {
         applicationId = "tw.chehu.displayfaultsimulator"
         minSdk = 26
         targetSdk = 36
-        versionCode = 10701
-        versionName = "1.7.1"
+        versionCode = 10800
+        versionName = "1.8.0"
     }
 
     signingConfigs {
@@ -32,6 +38,14 @@ android {
                 storePassword = signingProperties.getProperty("storePassword")
                 keyAlias = signingProperties.getProperty("keyAlias")
                 keyPassword = signingProperties.getProperty("keyPassword")
+            }
+        }
+        if (hasPlayUploadSigning) {
+            create("playUpload") {
+                storeFile = file(playSigningProperties.getProperty("storeFile"))
+                storePassword = playSigningProperties.getProperty("storePassword")
+                keyAlias = playSigningProperties.getProperty("keyAlias")
+                keyPassword = playSigningProperties.getProperty("keyPassword")
             }
         }
     }
@@ -47,6 +61,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+        create("play") {
+            initWith(getByName("release"))
+            matchingFallbacks += listOf("release")
+            if (hasPlayUploadSigning) signingConfig = signingConfigs.getByName("playUpload")
         }
     }
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">螢幕故障模擬器</string>
+    <string name="app_name">搞笑螢幕損壞模擬器</string>
     <string name="app_tagline">多線條・故障場景・觸控完全穿透</string>
     <string name="width_value">%1$d dp</string>
     <string name="movement_value">±%1$d dp</string>
@@ -180,63 +180,17 @@
     <string name="preset_dynamic_failure">動態間歇故障</string>
     <string name="preset_severe_damage">嚴重故障</string>
 
-    <string name="section_online_update">線上更新</string>
-    <string name="online_update_main_description">檢查官方 GitHub Release；若有較新的已簽署 APK，程式會自動下載並開啟 Android 更新安裝畫面。</string>
-    <string name="check_online_update">檢查線上更新</string>
-    <string name="online_update_title">線上更新</string>
-    <string name="online_update_description">開啟此頁後會立即自動檢查版本；發現新版時不需再次確認，即會下載並驗證 APK。</string>
-    <string name="update_current_version">目前版本：%1$s</string>
-    <string name="update_latest_version">線上最新版本：%1$s</string>
-    <string name="update_checking">檢查中…</string>
-    <string name="update_connecting">正在連線至 GitHub…</string>
-    <string name="update_retry">重新檢查</string>
-    <string name="update_check_again">再次檢查</string>
-    <string name="update_open_release">開啟 GitHub Release</string>
-    <string name="update_release_notes">版本說明</string>
-    <string name="update_loading">載入中…</string>
-    <string name="update_security_notice">安全機制：僅接受本專案 GitHub Release 的 HTTPS APK；安裝前會驗證 GitHub 提供的 SHA-256（若有）、應用程式包名與簽署憑證。最後仍須在 Android 系統安裝畫面由您確認更新。</string>
-    <string name="update_no_release_notes">此版本沒有提供版本說明。</string>
-    <string name="update_published_at">發布時間：%1$s</string>
-    <string name="update_apk_asset">APK：%1$s%2$s</string>
-    <string name="update_already_latest">目前已是最新版本。</string>
-    <string name="update_local_newer">目前安裝的版本比公開 Release 更新。</string>
-    <string name="update_apk_missing">發現新版，但 Release 沒有可安裝的 APK。</string>
-    <string name="update_unavailable">無法取得</string>
-    <string name="update_check_failed">檢查更新失敗，請確認網路後重試。</string>
-    <string name="update_https_only">為了安全，更新只能透過 HTTPS 下載。</string>
-    <string name="update_storage_unavailable">無法使用更新檔案儲存空間。</string>
-    <string name="update_download_title">正在下載螢幕故障模擬器 %1$s</string>
-    <string name="update_downloading">正在下載更新，完成並驗證後會自動開啟安裝畫面。</string>
-    <string name="update_downloading_short">下載中…</string>
-    <string name="update_download_start_failed">無法開始下載：%1$s</string>
-    <string name="update_download_failed">APK 下載失敗（代碼 %1$d）。</string>
-    <string name="update_download_paused">APK 下載已暫停，網路恢復後會繼續。</string>
-    <string name="update_status_failed">無法讀取更新下載狀態。</string>
-    <string name="update_verifying">下載完成，正在驗證 APK…</string>
-    <string name="update_download_missing">找不到已下載的 APK。</string>
-    <string name="update_digest_mismatch">APK 的 SHA-256 不相符，已阻止安裝。</string>
-    <string name="update_invalid_apk">下載的檔案不是有效的 Android APK。</string>
-    <string name="update_wrong_package">下載的 APK 屬於其他應用程式，已阻止安裝。</string>
-    <string name="update_signature_unavailable">無法驗證目前安裝版本的簽章。</string>
-    <string name="update_signature_mismatch">APK 簽署憑證與目前程式不一致，已阻止安裝。</string>
-    <string name="update_version_not_newer">下載的 APK 版本並未高於目前版本，已阻止安裝。</string>
-    <string name="update_allow_install">請允許螢幕故障模擬器安裝未知應用程式，再返回以繼續更新。</string>
-    <string name="update_opening_installer">驗證成功，正在開啟 Android 更新安裝畫面…</string>
-    <string name="update_installer_failed">無法開啟 Android 安裝程式，將改為開啟 GitHub Release。</string>
-    <string name="update_release_open_failed">無法開啟 GitHub Release 頁面。</string>
-    <string name="update_unknown">未知</string>
-
     <string name="notification_effect_active">故障效果顯示中；不會攔截任何觸控操作</string>
     <string name="notification_preparing">正在準備故障效果</string>
     <plurals name="notification_starts_in">
         <item quantity="other">將於 %1$d 秒後顯示故障效果</item>
     </plurals>
-    <string name="notification_title">螢幕故障模擬器</string>
+    <string name="notification_title">搞笑螢幕損壞模擬器</string>
     <string name="notification_stop">停止顯示</string>
     <string name="notification_channel_name">故障效果常駐服務</string>
     <string name="notification_channel_description">讓螢幕故障效果持續顯示，並提供快速停止按鈕</string>
     <string name="tile_name">螢幕故障</string>
     <string name="tile_active">顯示中</string>
     <string name="tile_stopped">已停止</string>
-    <string name="tile_permission_required">請先開啟螢幕故障模擬器並授予上層顯示權限</string>
+    <string name="tile_permission_required">請先開啟搞笑螢幕損壞模擬器並授予上層顯示權限</string>
 </resources>

@@ -1,0 +1,6 @@
+# Copy this file to play-upload.properties and fill in the private Google Play upload key.
+# Never commit the real properties file or keystore.
+storeFile=../display-fault-simulator-upload.jks
+storePassword=replace_with_secure_password
+keyAlias=display-fault-simulator-upload
+keyPassword=replace_with_secure_password

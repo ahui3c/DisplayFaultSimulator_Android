@@ -15,3 +15,4 @@ outputs/
 *.jks
 *.keystore
 keystore.properties
+play-upload.properties

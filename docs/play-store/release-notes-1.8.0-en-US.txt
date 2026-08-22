@@ -1,0 +1,4 @@
+First Google Play release.
+• New app icon and Traditional Chinese app name
+• Removed in-app online updates and related network/install permissions
+• Includes lines, cracks, liquid damage, dead pixels, scanlines, and animated fault scenes
