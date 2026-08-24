@@ -12,15 +12,15 @@ Display Fault Simulator is an Android app that recreates common panel-failure vi
 
 ## Screenshots
 
-These screenshots were captured from real builds running on an Android 16 emulator. The overlay screenshot confirms that the line reaches the physical top and bottom display bounds, including the status and navigation-bar areas.
+All images below were captured from the v1.9.0 release APK running on an Android 16 emulator. They are not composited mockups.
 
-| Full-screen overlay | Scene editor |
+| v1.9.0 Traditional Chinese settings | v1.9.0 English settings |
 | --- | --- |
-| <img src="docs/screenshots/overlay-en.png" width="300" alt="Green OLED line spanning the full Android home screen"> | <img src="docs/screenshots/editor-en.png" width="300" alt="Scene editor with direct line dragging"> |
+| <img src="docs/screenshots/main-zh-TW.png" width="300" alt="Display Fault Simulator v1.9.0 modern Traditional Chinese settings screen"> | <img src="docs/screenshots/main-en.png" width="300" alt="Display Fault Simulator v1.9.0 modern English settings screen"> |
 
-| English interface | Traditional Chinese interface |
+| Drag scene editor | Deep-black left-edge panel rupture |
 | --- | --- |
-| <img src="docs/screenshots/main-en.png" width="300" alt="Display Fault Simulator English interface"> | <img src="docs/screenshots/main-zh-TW.png" width="300" alt="螢幕故障模擬器繁體中文介面"> |
+| <img src="docs/screenshots/editor-en.png" width="300" alt="v1.9.0 scene editor with direct line dragging"> | <img src="docs/screenshots/preset-left-edge-shatter.png" width="300" alt="Irregular deep-black panel rupture attached to the left display edge"> |
 
 ### Preset effects
 
@@ -33,10 +33,6 @@ These are real full-screen captures from the Android 16 emulator, not composited
 | Heavy dead pixels | Aged LCD scanlines | Severe damage |
 | --- | --- | --- |
 | <img src="docs/screenshots/preset-dead-pixels.png" width="220" alt="Heavy dead pixels preset"> | <img src="docs/screenshots/preset-old-lcd.png" width="220" alt="Aged LCD scanlines preset"> | <img src="docs/screenshots/preset-severe-damage.png" width="220" alt="Severe composite damage preset"> |
-
-| Severe left-edge shatter with black panel rupture |
-| --- |
-| <img src="docs/screenshots/preset-left-edge-shatter.png" width="300" alt="Irregular deep-black panel rupture growing from the left display edge"> |
 
 ## Highlights
 

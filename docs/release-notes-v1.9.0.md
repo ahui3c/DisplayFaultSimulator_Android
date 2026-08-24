@@ -14,4 +14,8 @@
 - Fixed settings UI overlap with status bars, display cutouts, and navigation bars on Android 15/16
 - Added five left-edge crack presets for foldables: upper corner, lower edge, hinge hairlines, multiple impacts, and severe shatter
 - Replaced translucent geometric shards with irregular deep-black panel ruptures and LCD bleed attached to the display edge
-- Preserved full-screen coverage, hardware-coordinate anchoring, and complete touch-through behavior
+- Preserved full-screen coverage, hardware-coordinate anchoring, and complete touch-through behavior`r`n`r`n## Screenshots
+
+| Modern settings | Scene editor | Left-edge panel rupture |
+| --- | --- | --- |
+| ![Modern Traditional Chinese settings](https://raw.githubusercontent.com/ahui3c/DisplayFaultSimulator_Android/main/docs/screenshots/main-zh-TW.png) | ![Scene editor](https://raw.githubusercontent.com/ahui3c/DisplayFaultSimulator_Android/main/docs/screenshots/editor-en.png) | ![Deep-black left-edge panel rupture](https://raw.githubusercontent.com/ahui3c/DisplayFaultSimulator_Android/main/docs/screenshots/preset-left-edge-shatter.png) |

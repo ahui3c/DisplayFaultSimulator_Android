@@ -12,15 +12,15 @@ Display Fault Simulator 是 Android 螢幕面板故障效果模擬工具，透�
 
 ## 螢幕截圖
 
-以下畫面由 Android 16 模擬器實際執行後擷取。桌面覆蓋畫面可確認線條完整延伸到螢幕實體頂端與底端，包含狀態列及導覽列區域。
+以下畫面皆由 v1.9.0 正式 APK 在 Android 16 模擬器實際執行後擷取，不是合成示意圖。
 
-| 全螢幕覆蓋效果 | 場景編輯器 |
+| v1.9.0 繁體中文設定介面 | v1.9.0 英文設定介面 |
 | --- | --- |
-| <img src="docs/screenshots/overlay-en.png" width="300" alt="亮綠線完整橫跨 Android 桌面頂端到底端"> | <img src="docs/screenshots/editor-en.png" width="300" alt="可以直接拖曳線條的場景編輯器"> |
+| <img src="docs/screenshots/main-zh-TW.png" width="300" alt="搞笑螢幕損壞模擬器 v1.9.0 繁體中文現代化設定介面"> | <img src="docs/screenshots/main-en.png" width="300" alt="Display Fault Simulator v1.9.0 modern English settings screen"> |
 
-| 英文介面 | 繁體中文介面 |
+| 拖曳場景編輯器 | 左側深黑面板破損 |
 | --- | --- |
-| <img src="docs/screenshots/main-en.png" width="300" alt="Display Fault Simulator 英文介面"> | <img src="docs/screenshots/main-zh-TW.png" width="300" alt="螢幕故障模擬器繁體中文介面"> |
+| <img src="docs/screenshots/editor-en.png" width="300" alt="v1.9.0 場景編輯器與線條拖曳預覽"> | <img src="docs/screenshots/preset-left-edge-shatter.png" width="300" alt="貼著左側螢幕邊緣生長的不規則深黑面板破損"> |
 
 ### 預設場景效果
 
@@ -33,10 +33,6 @@ Display Fault Simulator 是 Android 螢幕面板故障效果模擬工具，透�
 | 大量壞點 | 老舊 LCD 掃描線 | 嚴重故障 |
 | --- | --- | --- |
 | <img src="docs/screenshots/preset-dead-pixels.png" width="220" alt="大量壞點預設效果"> | <img src="docs/screenshots/preset-old-lcd.png" width="220" alt="老舊 LCD 掃描線預設效果"> | <img src="docs/screenshots/preset-severe-damage.png" width="220" alt="嚴重故障複合預設效果"> |
-
-| 左側重度碎裂（新版深黑邊緣破損） |
-| --- |
-| <img src="docs/screenshots/preset-left-edge-shatter.png" width="300" alt="沿左側螢幕邊緣生長的不規則深黑面板破損"> |
 
 ## 主要功能
 
