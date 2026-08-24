@@ -28,6 +28,7 @@
     <string name="action_new">新增</string>
     <string name="action_duplicate">複製</string>
     <string name="action_delete">刪除</string>
+    <string name="action_open_settings">開啟設定</string>
     <string name="scene_editor_description">編輯器可直接左右拖曳每條線，並設定透明度、光暈、閃爍、壞點、漏液、殘影、破裂與掃描線。</string>
     <string name="section_preset_library">場景預設庫</string>
     <string name="preset_library_description">選擇內建效果後會建立一份可自由修改的場景，不會覆蓋原本設定。</string>
@@ -170,6 +171,11 @@
     <string name="preset_classic_oled">經典 OLED 綠線</string>
     <string name="preset_pink_lines">多條粉紅線</string>
     <string name="preset_impact_crack">面板摔傷破裂</string>
+    <string name="preset_left_corner_burst">左上角放射碎裂</string>
+    <string name="preset_left_lower_drop">左下邊緣摔裂</string>
+    <string name="preset_fold_hinge_hairline">折疊鉸鏈側髮絲裂</string>
+    <string name="preset_left_multi_impact">左側多重撞擊</string>
+    <string name="preset_left_severe_shatter">左側重度碎裂</string>
     <string name="preset_liquid">螢幕漏液</string>
     <string name="preset_dead_pixels">大量壞點</string>
     <string name="preset_cable_contact">排線接觸不良</string>

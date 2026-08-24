@@ -30,6 +30,7 @@
     <string name="action_new">New</string>
     <string name="action_duplicate">Duplicate</string>
     <string name="action_delete">Delete</string>
+    <string name="action_open_settings">Open settings</string>
     <string name="scene_editor_description">Drag each line horizontally and adjust opacity, glow, flicker, dead pixels, liquid damage, ghosting, cracks, and scanlines.</string>
     <string name="section_preset_library">Scene preset library</string>
     <string name="preset_library_description">Applying a built-in effect creates an editable scene without replacing your existing scenes.</string>
@@ -172,6 +173,11 @@
     <string name="preset_classic_oled">Classic OLED green line</string>
     <string name="preset_pink_lines">Multiple pink lines</string>
     <string name="preset_impact_crack">Impact-cracked panel</string>
+    <string name="preset_left_corner_burst">Upper-left corner burst</string>
+    <string name="preset_left_lower_drop">Lower-left edge drop</string>
+    <string name="preset_fold_hinge_hairline">Fold hinge-side hairline cracks</string>
+    <string name="preset_left_multi_impact">Multiple left-edge impacts</string>
+    <string name="preset_left_severe_shatter">Severe left-edge shatter</string>
     <string name="preset_liquid">Screen liquid damage</string>
     <string name="preset_dead_pixels">Heavy dead pixels</string>
     <string name="preset_cable_contact">Loose display cable</string>

@@ -298,8 +298,8 @@ object SceneRenderer {
                 rotationDegrees = impact.rotationDegrees
             )
         }
-        if (effects.edgeChips) drawEdgeChips(canvas, scene, density, opacity)
-        if (effects.glassShards) drawGlassShards(canvas, scene, density, opacity)
+        if (effects.edgeChips) drawEdgeChips(canvas, scene, impacts, density, opacity)
+        if (effects.glassShards) drawPanelRuptureVeins(canvas, scene, impacts, density, opacity)
         if (effects.glassReflection) drawGlassReflection(canvas, impacts, density, opacity)
         canvas.restoreToCount(save)
         selectedCrackId?.let { id -> impacts.firstOrNull { it.id == id }?.let { drawCrackHandle(canvas, it, density) } }
@@ -407,52 +407,151 @@ object SceneRenderer {
         canvas.drawCircle(centerX, centerY, density * (1.2f + strength / 55f), paint)
     }
 
-    private fun drawEdgeChips(canvas: Canvas, scene: DamageScene, density: Float, opacity: Int) {
+    private fun drawEdgeChips(
+        canvas: Canvas,
+        scene: DamageScene,
+        impacts: List<CrackImpact>,
+        density: Float,
+        opacity: Int
+    ) {
         val random = Random(scene.id.hashCode() xor 0x2C1B3C6D)
+        val averageX = impacts.map { it.xPercent }.average().takeUnless { it.isNaN() } ?: 50.0
+        val focusLeft = averageX < 35.0
+        val focusRight = averageX > 65.0
+        val ruptureCount = if (focusLeft || focusRight) 7 else 5
         paint.style = Paint.Style.FILL
-        repeat(7) { index ->
-            val onLeft = index % 2 == 0
-            val x = if (onLeft) 0f else canvas.width.toFloat()
-            val y = canvas.height * (0.08f + random.nextFloat() * 0.84f)
-            val size = density * (8f + random.nextFloat() * 18f)
-            val path = Path().apply {
-                moveTo(x, y - size)
-                lineTo(x + if (onLeft) size * 1.5f else -size * 1.5f, y)
-                lineTo(x, y + size)
-                close()
+        repeat(ruptureCount) { index ->
+            val onLeft = when {
+                focusLeft -> true
+                focusRight -> false
+                else -> index % 2 == 0
             }
-            paint.color = Color.argb((opacity * 1.25f).toInt().coerceAtMost(145), 3, 5, 7)
-            canvas.drawPath(path, paint)
-            paint.style = Paint.Style.STROKE
-            paint.strokeWidth = density * 0.45f
-            paint.color = Color.argb(opacity.coerceAtMost(110), 235, 244, 247)
-            canvas.drawPath(path, paint)
-            paint.style = Paint.Style.FILL
+            val edgeX = if (onLeft) 0f else canvas.width.toFloat()
+            val centerY = if (impacts.isNotEmpty()) {
+                val impact = impacts[index % impacts.size]
+                canvas.height * (
+                    impact.yPercent / 100f + (random.nextFloat() - 0.5f) *
+                        if (focusLeft || focusRight) 0.12f else 0.22f
+                ).coerceIn(0.02f, 0.98f)
+            } else {
+                canvas.height * (0.08f + random.nextFloat() * 0.84f)
+            }
+            val halfHeight = density * (12f + random.nextFloat() * 34f)
+            val depth = density * (12f + random.nextFloat() * 38f)
+
+            val bleed = buildEdgeRupturePath(
+                edgeX, centerY, halfHeight * 1.12f, depth * 1.28f,
+                onLeft, canvas.height.toFloat(), random
+            )
+            paint.color = Color.argb((72 + opacity / 3).coerceAtMost(118), 2, 2, 4)
+            canvas.drawPath(bleed, paint)
+
+            val core = buildEdgeRupturePath(
+                edgeX, centerY, halfHeight, depth,
+                onLeft, canvas.height.toFloat(), random
+            )
+            paint.color = Color.argb((205 + opacity / 2).coerceAtMost(248), 0, 0, 1)
+            canvas.drawPath(core, paint)
         }
     }
 
-    private fun drawGlassShards(canvas: Canvas, scene: DamageScene, density: Float, opacity: Int) {
+    private fun buildEdgeRupturePath(
+        edgeX: Float,
+        centerY: Float,
+        halfHeight: Float,
+        depth: Float,
+        onLeft: Boolean,
+        canvasHeight: Float,
+        random: Random
+    ): Path {
+        val top = (centerY - halfHeight).coerceIn(0f, canvasHeight)
+        val bottom = (centerY + halfHeight).coerceIn(0f, canvasHeight)
+        val direction = if (onLeft) 1f else -1f
+        val path = Path()
+        path.moveTo(edgeX, top)
+        var previousX = edgeX
+        var previousY = top
+        val segments = 7
+        for (step in 1 until segments) {
+            val progress = step.toFloat() / segments
+            val y = top + (bottom - top) * progress
+            val envelope = sin(Math.PI.toFloat() * progress).coerceAtLeast(0.12f)
+            val unevenDepth = depth * envelope * (0.55f + random.nextFloat() * 0.75f)
+            val x = edgeX + direction * unevenDepth
+            val controlY = (previousY + y) * 0.5f
+            path.cubicTo(
+                previousX + direction * depth * (random.nextFloat() - 0.35f) * 0.18f,
+                controlY - (random.nextFloat() - 0.5f) * halfHeight * 0.16f,
+                x - direction * depth * random.nextFloat() * 0.14f,
+                controlY + (random.nextFloat() - 0.5f) * halfHeight * 0.16f,
+                x,
+                y
+            )
+            previousX = x
+            previousY = y
+        }
+        path.cubicTo(
+            previousX + direction * depth * (random.nextFloat() - 0.5f) * 0.12f,
+            (previousY + bottom) * 0.5f,
+            edgeX + direction * depth * 0.08f,
+            bottom,
+            edgeX,
+            bottom
+        )
+        path.close()
+        return path
+    }
+
+    private fun drawPanelRuptureVeins(
+        canvas: Canvas,
+        scene: DamageScene,
+        impacts: List<CrackImpact>,
+        density: Float,
+        opacity: Int
+    ) {
         val random = Random(scene.id.hashCode() xor 0x6A09E667)
-        repeat(9) {
-            val cx = random.nextFloat() * canvas.width
-            val cy = random.nextFloat() * canvas.height
-            val size = density * (7f + random.nextFloat() * 18f)
-            val path = Path().apply {
-                moveTo(cx, cy - size)
-                lineTo(cx + size * 0.7f, cy + size * 0.55f)
-                lineTo(cx - size * 0.45f, cy + size * 0.25f)
-                close()
+        val averageX = impacts.map { it.xPercent }.average().takeUnless { it.isNaN() } ?: 50.0
+        val edgeFocused = averageX < 35.0 || averageX > 65.0
+        val veinCount = if (edgeFocused) 18 else 12
+        paint.style = Paint.Style.STROKE
+        paint.strokeCap = Paint.Cap.ROUND
+        paint.strokeJoin = Paint.Join.ROUND
+        repeat(veinCount) { index ->
+            val impact = impacts.getOrNull(index % impacts.size.coerceAtLeast(1))
+            val onLeft = when {
+                edgeFocused -> averageX < 35.0
+                impact != null -> impact.xPercent < 50f
+                else -> index % 2 == 0
             }
-            paint.style = Paint.Style.FILL
-            paint.color = Color.argb((opacity * 0.18f).toInt().coerceAtLeast(3), 220, 240, 246)
-            canvas.drawPath(path, paint)
-            paint.style = Paint.Style.STROKE
-            paint.strokeWidth = density * 0.35f
-            paint.color = Color.argb((opacity * 0.7f).toInt().coerceAtLeast(6), 240, 248, 250)
+            val direction = if (onLeft) 1f else -1f
+            val edgeX = if (onLeft) 0f else canvas.width.toFloat()
+            val sourceY = if (impact != null) {
+                canvas.height * (impact.yPercent / 100f + (random.nextFloat() - 0.5f) * 0.12f)
+            } else {
+                canvas.height * (0.08f + random.nextFloat() * 0.84f)
+            }.coerceIn(0f, canvas.height.toFloat())
+            val reach = canvas.width * (0.035f + random.nextFloat() * if (edgeFocused) 0.16f else 0.1f)
+            val verticalDrift = (random.nextFloat() - 0.5f) * canvas.height * 0.11f
+            val endX = edgeX + direction * reach
+            val endY = (sourceY + verticalDrift).coerceIn(0f, canvas.height.toFloat())
+            val path = Path().apply {
+                moveTo(edgeX, sourceY)
+                cubicTo(
+                    edgeX + direction * reach * (0.18f + random.nextFloat() * 0.12f),
+                    sourceY + verticalDrift * 0.08f,
+                    edgeX + direction * reach * (0.42f + random.nextFloat() * 0.18f),
+                    sourceY + verticalDrift * (0.35f + random.nextFloat() * 0.2f),
+                    endX,
+                    endY
+                )
+            }
+            paint.strokeWidth = density * (0.65f + random.nextFloat() * 2.35f)
+            paint.color = Color.argb((168 + opacity / 2 + random.nextInt(28)).coerceAtMost(236), 0, 0, 2)
             canvas.drawPath(path, paint)
         }
+        paint.strokeCap = Paint.Cap.BUTT
+        paint.strokeJoin = Paint.Join.MITER
     }
-
     private fun drawGlassReflection(canvas: Canvas, impacts: List<CrackImpact>, density: Float, opacity: Int) {
         paint.shader = LinearGradient(
             0f, 0f, canvas.width.toFloat(), canvas.height.toFloat(),

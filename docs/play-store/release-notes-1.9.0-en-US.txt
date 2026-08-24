@@ -1,0 +1,5 @@
+• Redesigned the settings screen with a compact modern layout
+• Fixed status bar and display cutout overlap on Android 15/16
+• Added five left-edge crack presets for foldables
+• Replaced geometric shards with irregular deep-black panel ruptures and LCD bleed
+• Preserved full-screen, hardware-anchored, touch-through effects

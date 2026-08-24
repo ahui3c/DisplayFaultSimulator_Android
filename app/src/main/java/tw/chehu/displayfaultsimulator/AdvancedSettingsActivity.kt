@@ -59,7 +59,9 @@ class AdvancedSettingsActivity : Activity() {
         val id = intent.getStringExtra(EXTRA_SCENE_ID) ?: repository.activeSceneId
         workingScene = repository.find(id) ?: repository.activeScene()
         ensureConcreteImpacts()
-        setContentView(buildContent())
+        val content = buildContent()
+        setContentView(content)
+        applySettingsSystemBarInsets(content)
         bindEvents()
         syncAll()
     }

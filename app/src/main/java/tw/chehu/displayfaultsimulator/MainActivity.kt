@@ -62,7 +62,9 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         settingsStore = LineSettings(this)
         repository = SceneRepository(this)
-        setContentView(buildContent())
+        val content = buildContent()
+        setContentView(content)
+        applySettingsSystemBarInsets(content)
         bindEvents()
     }
 
@@ -75,120 +77,156 @@ class MainActivity : Activity() {
     private fun buildContent(): View {
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.rgb(245, 247, 246))
+            setBackgroundColor(Color.rgb(244, 247, 245))
         }
-        root.addView(LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(24), dp(22), dp(24), dp(20))
-            background = rounded(Color.rgb(13, 27, 20), 0f)
-            addView(textView(getString(R.string.app_name), 27f, Color.WHITE, Typeface.BOLD))
-            addView(textView(getString(R.string.app_tagline), 14f, Color.rgb(176, 212, 188)).apply {
-                setPadding(0, dp(4), 0, 0)
-            })
-        })
+        root.addView(buildCompactHeader())
 
-        val scroll = ScrollView(this).apply { isFillViewport = true; clipToPadding = false }
+        val scroll = ScrollView(this).apply {
+            isFillViewport = true
+            clipToPadding = false
+        }
         val content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), dp(18), dp(16), dp(32))
+            setPadding(dp(12), dp(12), dp(12), dp(16))
         }
-
-        content.addView(card().apply {
-            addView(sectionTitle(getString(R.string.section_safety)))
-            addView(body(getString(R.string.safety_description)))
-        }, marginBottom())
-
-        content.addView(card().apply {
-            addView(sectionTitle(getString(R.string.section_required_settings)))
-            permissionState = statusText()
-            addView(permissionState)
-            addView(actionButton(getString(R.string.grant_overlay_permission)) { openOverlaySettings() })
-            batteryState = statusText().apply { setPadding(0, dp(16), 0, 0) }
-            addView(batteryState)
-            addView(actionButton(getString(R.string.open_battery_optimization)) { openBatterySettings() })
-            bootCheck = CheckBox(this@MainActivity).apply {
-                text = getString(R.string.restore_after_boot)
-                textSize = 15f
-                setTextColor(Color.rgb(31, 41, 36))
-                setPadding(0, dp(12), 0, 0)
-                isChecked = settingsStore.startOnBoot
-            }
-            addView(bootCheck)
-        }, marginBottom())
 
         content.addView(card().apply {
             addView(sectionTitle(getString(R.string.section_damage_scenes)))
             sceneSpinner = Spinner(this@MainActivity)
             addView(sceneSpinner, matchWrap())
-            addView(actionButton(getString(R.string.open_drag_editor)) { editActiveScene() }.apply {
-                background = rounded(Color.rgb(8, 122, 54), 14f)
-                setTextColor(Color.WHITE)
-            })
+            addView(primaryButton(getString(R.string.open_drag_editor)) { editActiveScene() })
             addView(horizontalButtons(
-                actionButton(getString(R.string.action_new)) { createScene() },
-                actionButton(getString(R.string.action_duplicate)) { duplicateScene() },
-                actionButton(getString(R.string.action_delete)) { deleteScene() }
+                compactButton(getString(R.string.action_new)) { createScene() },
+                compactButton(getString(R.string.action_duplicate)) { duplicateScene() },
+                compactButton(getString(R.string.action_delete)) { deleteScene() }
             ))
-            addView(body(getString(R.string.scene_editor_description)))
         }, marginBottom())
 
         content.addView(card().apply {
             addView(sectionTitle(getString(R.string.section_preset_library)))
-            addView(body(getString(R.string.preset_library_description)))
             presetItems = ScenePresets.all(this@MainActivity)
-            presetSpinner = Spinner(this@MainActivity).apply {
-                adapter = ArrayAdapter(
-                    this@MainActivity,
-                    android.R.layout.simple_spinner_dropdown_item,
-                    presetItems.map { it.name }
+            addView(LinearLayout(this@MainActivity).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                presetSpinner = Spinner(this@MainActivity).apply {
+                    adapter = ArrayAdapter(
+                        this@MainActivity,
+                        android.R.layout.simple_spinner_dropdown_item,
+                        presetItems.map { it.name }
+                    )
+                }
+                addView(presetSpinner, LinearLayout.LayoutParams(0, dp(48), 1f))
+                addView(
+                    compactButton(getString(R.string.apply_preset)) { applyPreset() },
+                    LinearLayout.LayoutParams(dp(112), dp(44)).apply { marginStart = dp(8) }
                 )
-            }
-            addView(presetSpinner, matchWrap())
-            addView(actionButton(getString(R.string.apply_preset)) { applyPreset() }.apply {
-                background = rounded(Color.rgb(232, 238, 234), 14f)
             })
         }, marginBottom())
 
         content.addView(card().apply {
             addView(sectionTitle(getString(R.string.section_schedule)))
-            addView(fieldLabel(getString(R.string.start_time)))
-            delaySpinner = Spinner(this@MainActivity).apply {
-                adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, delayOptions.map { it.label })
-            }
-            addView(delaySpinner, matchWrap())
-            addView(fieldLabel(getString(R.string.stop_time)))
-            durationSpinner = Spinner(this@MainActivity).apply {
-                adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, durationOptions.map { it.label })
-            }
-            addView(durationSpinner, matchWrap())
+            addView(scheduleField(getString(R.string.start_time), true))
+            addView(divider())
+            addView(scheduleField(getString(R.string.stop_time), false))
         }, marginBottom())
 
         content.addView(card().apply {
-            addView(sectionTitle(getString(R.string.section_quick_tile)))
-            addView(body(getString(R.string.quick_tile_description)))
+            addView(sectionTitle(getString(R.string.section_required_settings)))
+            permissionState = statusText()
+            addView(settingStatusRow(permissionState) { openOverlaySettings() })
+            addView(divider())
+            batteryState = statusText()
+            addView(settingStatusRow(batteryState) { openBatterySettings() })
+            bootCheck = CheckBox(this@MainActivity).apply {
+                text = getString(R.string.restore_after_boot)
+                textSize = 13.5f
+                setTextColor(Color.rgb(31, 41, 36))
+                setPadding(0, dp(8), 0, 0)
+                isChecked = settingsStore.startOnBoot
+            }
+            addView(bootCheck)
         }, marginBottom())
 
-        content.addView(card().apply {
-            addView(sectionTitle(getString(R.string.section_display_control)))
-            serviceState = statusText()
-            addView(serviceState)
-            startButton = actionButton(getString(R.string.start_or_schedule)) { startOverlay() }.apply {
-                background = rounded(Color.rgb(8, 122, 54), 14f)
-                setTextColor(Color.WHITE)
-            }
-            addView(startButton)
-            stopButton = actionButton(getString(R.string.stop_all_effects)) { stopOverlay() }
-            addView(stopButton)
-            addView(textView(getString(R.string.force_stop_note), 12.5f, Color.rgb(100, 112, 106)).apply {
-                setPadding(0, dp(12), 0, 0)
-            })
-        })
+        content.addView(infoCard())
 
         scroll.addView(content)
         root.addView(scroll, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+        root.addView(buildControlBar())
         return root
     }
 
+    private fun buildCompactHeader() = LinearLayout(this).apply {
+        orientation = LinearLayout.HORIZONTAL
+        gravity = Gravity.CENTER_VERTICAL
+        setPadding(dp(20), dp(14), dp(20), dp(14))
+        background = rounded(Color.rgb(13, 27, 20), 0f)
+        addView(
+            View(this@MainActivity).apply { setBackgroundColor(Color.rgb(55, 236, 113)) },
+            LinearLayout.LayoutParams(dp(4), dp(54)).apply { marginEnd = dp(14) }
+        )
+        addView(LinearLayout(this@MainActivity).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(textView(getString(R.string.app_name), 22f, Color.WHITE, Typeface.BOLD))
+            addView(textView(getString(R.string.app_tagline), 12.5f, Color.rgb(176, 212, 188)).apply {
+                setPadding(0, dp(2), 0, 0)
+            })
+        })
+    }
+
+    private fun scheduleField(label: String, isStart: Boolean) = LinearLayout(this).apply {
+        orientation = LinearLayout.HORIZONTAL
+        gravity = Gravity.CENTER_VERTICAL
+        addView(fieldLabel(label), LinearLayout.LayoutParams(dp(76), ViewGroup.LayoutParams.WRAP_CONTENT))
+        val spinner = Spinner(this@MainActivity).apply {
+            adapter = ArrayAdapter(
+                this@MainActivity,
+                android.R.layout.simple_spinner_dropdown_item,
+                if (isStart) delayOptions.map { it.label } else durationOptions.map { it.label }
+            )
+        }
+        if (isStart) delaySpinner = spinner else durationSpinner = spinner
+        addView(spinner, LinearLayout.LayoutParams(0, dp(48), 1f))
+    }
+
+    private fun settingStatusRow(status: TextView, action: () -> Unit) = LinearLayout(this).apply {
+        orientation = LinearLayout.HORIZONTAL
+        gravity = Gravity.CENTER_VERTICAL
+        setPadding(0, dp(3), 0, dp(3))
+        addView(status, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        addView(
+            compactButton(getString(R.string.action_open_settings), action),
+            LinearLayout.LayoutParams(dp(104), dp(42)).apply { marginStart = dp(8) }
+        )
+    }
+
+    private fun infoCard() = card().apply {
+        addView(sectionTitle(getString(R.string.section_safety)))
+        addView(body(getString(R.string.safety_description)))
+        addView(divider().apply {
+            (layoutParams as LinearLayout.LayoutParams).apply {
+                topMargin = dp(12)
+                bottomMargin = dp(10)
+            }
+        })
+        addView(textView(getString(R.string.section_quick_tile), 14.5f, Color.rgb(13, 27, 20), Typeface.BOLD))
+        addView(body(getString(R.string.quick_tile_description)))
+    }
+
+    private fun buildControlBar() = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        setPadding(dp(12), dp(8), dp(12), dp(10))
+        setBackgroundColor(Color.WHITE)
+        elevation = dp(8).toFloat()
+        serviceState = statusText()
+        addView(serviceState)
+        addView(LinearLayout(this@MainActivity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            startButton = primaryButton(getString(R.string.start_or_schedule)) { startOverlay() }
+            stopButton = compactButton(getString(R.string.notification_stop)) { stopOverlay() }
+            addView(startButton, LinearLayout.LayoutParams(0, dp(48), 1.65f))
+            addView(stopButton, LinearLayout.LayoutParams(0, dp(48), 1f).apply { marginStart = dp(8) })
+        })
+    }
     private fun bindEvents() {
         bootCheck.setOnCheckedChangeListener { _, checked -> settingsStore.startOnBoot = checked }
         sceneSpinner.onItemSelectedListener = SimpleItemSelectedListener {
@@ -307,14 +345,24 @@ class MainActivity : Activity() {
         serviceState.setTextColor(if (enabled) Color.rgb(8, 122, 54) else Color.rgb(100, 112, 106))
         startButton.isEnabled = !enabled
         stopButton.isEnabled = enabled
+        startButton.background = rounded(
+            if (enabled) Color.rgb(232, 239, 235) else Color.rgb(8, 122, 54),
+            12f
+        )
+        startButton.setTextColor(if (enabled) Color.rgb(126, 138, 132) else Color.WHITE)
+        stopButton.background = rounded(
+            if (enabled) Color.rgb(13, 27, 20) else Color.rgb(232, 239, 235),
+            12f
+        )
+        stopButton.setTextColor(if (enabled) Color.WHITE else Color.rgb(126, 138, 132))
     }
 
     private fun horizontalButtons(vararg buttons: Button) = LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL
         buttons.forEachIndexed { index, button ->
-            button.layoutParams = LinearLayout.LayoutParams(0, dp(54), 1f).apply {
-                topMargin = dp(8)
-                if (index > 0) marginStart = dp(8)
+            button.layoutParams = LinearLayout.LayoutParams(0, dp(42), 1f).apply {
+                topMargin = dp(6)
+                if (index > 0) marginStart = dp(6)
             }
             addView(button)
         }
@@ -322,32 +370,77 @@ class MainActivity : Activity() {
 
     private fun card() = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
-        setPadding(dp(20), dp(20), dp(20), dp(20))
-        background = rounded(Color.WHITE, 18f, Color.rgb(224, 230, 226))
+        setPadding(dp(16), dp(14), dp(16), dp(14))
+        background = rounded(Color.WHITE, 14f, Color.rgb(221, 228, 224))
         elevation = dp(1).toFloat()
     }
 
-    private fun actionButton(label: String, action: () -> Unit) = Button(this).apply {
-        text = label; textSize = 15f; isAllCaps = false
+    private fun compactButton(label: String, action: () -> Unit) = Button(this).apply {
+        text = label
+        textSize = 13f
+        isAllCaps = false
+        minHeight = 0
+        minWidth = 0
+        setPadding(dp(10), 0, dp(10), 0)
         setTextColor(Color.rgb(31, 41, 36))
-        background = rounded(Color.rgb(232, 238, 234), 14f)
-        minHeight = dp(52)
+        background = rounded(Color.rgb(232, 239, 235), 12f)
         setOnClickListener { action() }
-        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(56)).apply { topMargin = dp(10) }
     }
 
-    private fun sectionTitle(label: String) = textView(label, 19f, Color.rgb(13, 27, 20), Typeface.BOLD).apply { setPadding(0, 0, 0, dp(10)) }
-    private fun fieldLabel(label: String) = textView(label, 14f, Color.rgb(82, 95, 88), Typeface.BOLD).apply { setPadding(0, dp(12), 0, dp(2)) }
-    private fun statusText() = textView("", 14f, Color.rgb(100, 112, 106), Typeface.BOLD)
-    private fun body(value: String) = textView(value, 14f, Color.rgb(82, 95, 88)).apply { setLineSpacing(0f, 1.25f); setPadding(0, dp(5), 0, 0) }
+    private fun primaryButton(label: String, action: () -> Unit) = compactButton(label, action).apply {
+        setTextColor(Color.WHITE)
+        background = rounded(Color.rgb(8, 122, 54), 12f)
+        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(46)).apply {
+            topMargin = dp(6)
+        }
+    }
+
+    private fun sectionTitle(label: String) = textView(label, 16.5f, Color.rgb(13, 27, 20), Typeface.BOLD).apply {
+        setPadding(0, 0, 0, dp(7))
+    }
+
+    private fun fieldLabel(label: String) = textView(label, 12.5f, Color.rgb(82, 95, 88), Typeface.BOLD).apply {
+        setPadding(0, 0, 0, dp(2))
+    }
+
+    private fun statusText() = textView("", 12.5f, Color.rgb(100, 112, 106), Typeface.BOLD)
+
+    private fun body(value: String) = textView(value, 12.5f, Color.rgb(82, 95, 88)).apply {
+        setLineSpacing(0f, 1.18f)
+        setPadding(0, dp(2), 0, 0)
+    }
+
     private fun textView(value: String, size: Float, color: Int, style: Int = Typeface.NORMAL) = TextView(this).apply {
-        text = value; textSize = size; setTextColor(color); setTypeface(typeface, style)
+        text = value
+        textSize = size
+        setTextColor(color)
+        setTypeface(typeface, style)
     }
+
     private fun rounded(fill: Int, radiusDp: Float, stroke: Int? = null) = GradientDrawable().apply {
-        shape = GradientDrawable.RECTANGLE; setColor(fill); cornerRadius = dp(radiusDp).toFloat(); stroke?.let { setStroke(dp(1), it) }
+        shape = GradientDrawable.RECTANGLE
+        setColor(fill)
+        cornerRadius = dp(radiusDp).toFloat()
+        stroke?.let { setStroke(dp(1), it) }
     }
-    private fun marginBottom() = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { bottomMargin = dp(14) }
-    private fun matchWrap() = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+
+    private fun divider() = View(this).apply {
+        setBackgroundColor(Color.rgb(228, 233, 230))
+        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(1)).apply {
+            topMargin = dp(8)
+            bottomMargin = dp(8)
+        }
+    }
+
+    private fun marginBottom() = LinearLayout.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT,
+        ViewGroup.LayoutParams.WRAP_CONTENT
+    ).apply { bottomMargin = dp(10) }
+
+    private fun matchWrap() = LinearLayout.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT,
+        ViewGroup.LayoutParams.WRAP_CONTENT
+    )
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
     private fun dp(value: Float) = (value * resources.displayMetrics.density).toInt()
     private data class TimeOption(val label: String, val seconds: Int)

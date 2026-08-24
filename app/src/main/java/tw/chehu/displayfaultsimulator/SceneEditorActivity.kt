@@ -81,7 +81,9 @@ class SceneEditorActivity : Activity() {
         repository = SceneRepository(this)
         val id = intent.getStringExtra(EXTRA_SCENE_ID) ?: repository.activeSceneId
         workingScene = repository.find(id) ?: repository.activeScene()
-        setContentView(buildContent())
+        val content = buildContent()
+        setContentView(content)
+        applySettingsSystemBarInsets(content)
         bindEvents()
         syncAllControls()
     }

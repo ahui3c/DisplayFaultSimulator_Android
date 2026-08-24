@@ -34,13 +34,17 @@ Display Fault Simulator 是 Android 螢幕面板故障效果模擬工具，透�
 | --- | --- | --- |
 | <img src="docs/screenshots/preset-dead-pixels.png" width="220" alt="大量壞點預設效果"> | <img src="docs/screenshots/preset-old-lcd.png" width="220" alt="老舊 LCD 掃描線預設效果"> | <img src="docs/screenshots/preset-severe-damage.png" width="220" alt="嚴重故障複合預設效果"> |
 
+| 左側重度碎裂（新版深黑邊緣破損） |
+| --- |
+| <img src="docs/screenshots/preset-left-edge-shatter.png" width="300" alt="沿左側螢幕邊緣生長的不規則深黑面板破損"> |
+
 ## 主要功能
 
 - 每個場景最多 12 條獨立垂直線
 - 每條線可設定顏色、粗細、透明度、光暈、閃爍、位置與定時左右微移
 - 在視覺化場景編輯器中直接拖曳線條
 - 可疊加蜘蛛網、放射撞擊、邊角碎裂、髮絲裂紋等破裂樣式，以及壞點／亮點、面板漏液、OLED 殘影與 LCD 掃描線
-- 裂紋延伸範圍與可見度可分別調整，內建破裂預設採較淡的透明玻璃質感
+- 裂紋延伸範圍與可見度可分別調整，邊緣破損以貼齊面板的不規則深黑裂口與液晶滲漏呈現
 - 每個場景最多 6 個可拖曳撞擊點，並可調整旋轉、分支、長度、遮罩、缺角、碎片、反光與方向視差
 - OLED 黑斑、彩色漏液邊緣、亮度不均、彩虹色偏、壓傷光斑、橫向撕裂、半屏黑屏、閃屏、PWM 條紋與排線跳動
 - 故障逐步出現、黑斑／漏液擴散、線條分裂變色、事件時間軸、隨機模式及自動循環
@@ -56,6 +60,11 @@ Display Fault Simulator 是 Android 螢幕面板故障效果模擬工具，透�
 - 經典 OLED 綠線
 - 多條粉紅線
 - 面板摔傷破裂
+- 左上角放射碎裂
+- 左下邊緣摔裂
+- 折疊鉸鏈側髮絲裂
+- 左側多重撞擊
+- 左側重度碎裂
 - 螢幕漏液
 - 大量壞點
 - 排線接觸不良

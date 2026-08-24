@@ -42,6 +42,120 @@ object ScenePresets {
                 movementEnabled = false
             ),
             DamageScene(
+                id = "preset-left-corner-burst",
+                name = context.getString(R.string.preset_left_corner_burst),
+                lines = listOf(line(1f, 1, Color.WHITE, opacity = 10)),
+                effects = DamageEffects(
+                    crackedScreen = true,
+                    crackStrength = 82,
+                    crackPattern = CrackPattern.CORNER_SHATTER,
+                    crackOpacityPercent = 38,
+                    crackMask = CrackMask.TOP_LEFT,
+                    crackImpacts = listOf(
+                        impact(2f, 7f, 24, 82, rotation = 8),
+                        impact(8f, 18f, 13, 52, rotation = 350)
+                    ),
+                    edgeChips = true,
+                    glassShards = true,
+                    glassReflection = true,
+                    crackParallax = true
+                ),
+                dynamics = SceneDynamics(animatedEntry = true, impactFlash = true),
+                movementEnabled = false
+            ),
+            DamageScene(
+                id = "preset-left-lower-drop",
+                name = context.getString(R.string.preset_left_lower_drop),
+                lines = listOf(line(1f, 1, Color.WHITE, opacity = 10)),
+                effects = DamageEffects(
+                    crackedScreen = true,
+                    crackStrength = 78,
+                    crackPattern = CrackPattern.RADIAL_IMPACT,
+                    crackOpacityPercent = 34,
+                    crackMask = CrackMask.AROUND_IMPACTS,
+                    crackImpacts = listOf(
+                        impact(2f, 88f, 22, 78, rotation = 310),
+                        impact(10f, 74f, 11, 48, rotation = 24)
+                    ),
+                    edgeChips = true,
+                    glassShards = true,
+                    glassReflection = true,
+                    crackParallax = true
+                ),
+                dynamics = SceneDynamics(animatedEntry = true, impactFlash = true),
+                movementEnabled = false
+            ),
+            DamageScene(
+                id = "preset-fold-hinge-hairline",
+                name = context.getString(R.string.preset_fold_hinge_hairline),
+                lines = listOf(line(1f, 1, Color.WHITE, opacity = 10)),
+                effects = DamageEffects(
+                    crackedScreen = true,
+                    crackStrength = 58,
+                    crackPattern = CrackPattern.HAIRLINE,
+                    crackOpacityPercent = 28,
+                    crackMask = CrackMask.AROUND_IMPACTS,
+                    crackImpacts = listOf(
+                        impact(1f, 48f, 9, 70, rotation = 340),
+                        impact(3f, 63f, 6, 56, rotation = 18)
+                    ),
+                    glassReflection = true,
+                    crackParallax = true,
+                    randomizeCracks = false
+                ),
+                dynamics = SceneDynamics(animatedEntry = true),
+                movementEnabled = false
+            ),
+            DamageScene(
+                id = "preset-left-multi-impact",
+                name = context.getString(R.string.preset_left_multi_impact),
+                lines = listOf(line(1f, 1, Color.WHITE, opacity = 10)),
+                effects = DamageEffects(
+                    crackedScreen = true,
+                    crackStrength = 76,
+                    crackPattern = CrackPattern.SPIDERWEB,
+                    crackOpacityPercent = 40,
+                    crackMask = CrackMask.AROUND_IMPACTS,
+                    crackImpacts = listOf(
+                        impact(3f, 20f, 17, 60, rotation = 12),
+                        impact(7f, 48f, 20, 72, rotation = 348),
+                        impact(4f, 77f, 15, 62, rotation = 28)
+                    ),
+                    edgeChips = true,
+                    glassShards = true,
+                    glassReflection = true,
+                    crackParallax = true
+                ),
+                dynamics = SceneDynamics(animatedEntry = true, impactFlash = true),
+                movementEnabled = false
+            ),
+            DamageScene(
+                id = "preset-left-severe-shatter",
+                name = context.getString(R.string.preset_left_severe_shatter),
+                lines = listOf(line(1f, 1, Color.WHITE, opacity = 14)),
+                effects = DamageEffects(
+                    crackedScreen = true,
+                    crackStrength = 96,
+                    crackPattern = CrackPattern.CORNER_SHATTER,
+                    crackOpacityPercent = 46,
+                    crackMask = CrackMask.AROUND_IMPACTS,
+                    crackImpacts = listOf(
+                        impact(1f, 9f, 24, 90, rotation = 6),
+                        impact(2f, 38f, 18, 78, rotation = 352),
+                        impact(1f, 68f, 22, 86, rotation = 18),
+                        impact(6f, 91f, 14, 60, rotation = 330)
+                    ),
+                    edgeChips = true,
+                    glassShards = true,
+                    glassReflection = true,
+                    crackParallax = true,
+                    deadPixels = true,
+                    deadPixelStrength = 12
+                ),
+                dynamics = SceneDynamics(animatedEntry = true, impactFlash = true),
+                movementEnabled = false
+            ),
+            DamageScene(
                 id = "preset-liquid",
                 name = context.getString(R.string.preset_liquid),
                 lines = listOf(line(83f, 3, Color.rgb(150, 70, 210), opacity = 70, glow = 3)),

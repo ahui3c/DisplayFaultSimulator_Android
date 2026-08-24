@@ -34,13 +34,17 @@ These are real full-screen captures from the Android 16 emulator, not composited
 | --- | --- | --- |
 | <img src="docs/screenshots/preset-dead-pixels.png" width="220" alt="Heavy dead pixels preset"> | <img src="docs/screenshots/preset-old-lcd.png" width="220" alt="Aged LCD scanlines preset"> | <img src="docs/screenshots/preset-severe-damage.png" width="220" alt="Severe composite damage preset"> |
 
+| Severe left-edge shatter with black panel rupture |
+| --- |
+| <img src="docs/screenshots/preset-left-edge-shatter.png" width="300" alt="Irregular deep-black panel rupture growing from the left display edge"> |
+
 ## Highlights
 
 - Up to 12 independent vertical lines per scene
 - Per-line color, width, opacity, glow, flicker, position, and timed horizontal movement
 - Direct line dragging in the visual scene editor
 - Layerable spiderweb, radial-impact, corner-shatter, and hairline crack patterns, plus dead/stuck pixels, panel liquid damage, OLED ghosting, and LCD scanlines
-- Crack spread and visibility are independently adjustable; built-in crack presets use a subtler translucent-glass treatment
+- Crack spread and visibility are independently adjustable; edge damage uses irregular deep-black panel ruptures and LCD bleed attached to the bezel
 - Up to 6 draggable impact points per scene with rotation, branch count, reach, region masks, chipped edges, shards, reflections, and tilt parallax
 - OLED black spots, colored edge bleed, uneven brightness, rainbow shift, pressure spots, tearing, partial blackout, flashes, PWM bands, and cable jumping
 - Animated reveal, expanding black spots/liquid, unstable split or recolored lines, event timeline, random faults, and automatic effect cycling
@@ -56,6 +60,11 @@ These are real full-screen captures from the Android 16 emulator, not composited
 - Classic OLED green line
 - Multiple pink lines
 - Impact-cracked panel
+- Upper-left corner burst
+- Lower-left edge drop
+- Fold hinge-side hairline cracks
+- Multiple left-edge impacts
+- Severe left-edge shatter
 - Screen liquid damage
 - Heavy dead pixels
 - Loose display cable
